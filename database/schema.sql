@@ -49,12 +49,18 @@ CREATE TABLE chunks (
     id SERIAL PRIMARY KEY,
     document_id INTEGER REFERENCES documents(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
-    embedding vector(768) NOT NULL,
+    embedding vector(768),
     chunk_index INTEGER NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'embedded', 'failed')),
+    error_message TEXT,
+    retry_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE INDEX idx_chunks_document_id ON chunks(document_id);
+CREATE INDEX idx_chunks_status ON chunks(status);
+CREATE INDEX idx_chunks_document_status ON chunks(document_id, status);
 -- IVFFlat index for fast similarity search
 CREATE INDEX idx_chunks_embedding ON chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 
@@ -112,6 +118,8 @@ BEGIN
         1 - (chunks.embedding <=> query_embedding) AS similarity
     FROM chunks
     WHERE (filter_document IS NULL OR chunks.document_id = filter_document)
+        AND embedding IS NOT NULL
+        AND status = 'embedded'
     ORDER BY chunks.embedding <=> query_embedding
     LIMIT match_count;
 END;
@@ -129,7 +137,7 @@ INSERT INTO profiles (email, password_hash, name, role) VALUES
 
 COMMENT ON TABLE profiles IS 'User profiles with JWT authentication';
 COMMENT ON TABLE documents IS 'Uploaded PDF documents for RAG';
-COMMENT ON TABLE chunks IS 'Text chunks with Gemini embeddings (768-dim)';
+COMMENT ON TABLE chunks IS 'Text chunks with Gemini embeddings (768-dim). Status: pending (chunked, waiting for embedding), embedded (completed), failed (embedding error)';
 COMMENT ON TABLE chat_history IS 'User chat conversations with AI';
 COMMENT ON TABLE feedback IS 'User feedback on chat responses (thumbs up/down)';
 COMMENT ON FUNCTION match_chunks IS 'Semantic similarity search using cosine distance';
