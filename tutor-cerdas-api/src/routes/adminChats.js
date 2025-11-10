@@ -17,11 +17,11 @@ router.get(
   [
     query("page").optional().isInt({ min: 1 }),
     query("limit").optional().isInt({ min: 1, max: 100 }),
-    query("user_id").optional().isInt(),
-    query("start_date").optional().isISO8601(),
-    query("end_date").optional().isISO8601(),
+    query("user").optional().trim(),
+    query("search").optional().trim(),
+    query("dateFrom").optional().isISO8601(),
+    query("dateTo").optional().isISO8601(),
     query("language").optional().isIn(["id", "en"]),
-    query("keyword").optional().trim(),
   ],
   async (req, res) => {
     try {
@@ -33,32 +33,32 @@ router.get(
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 20;
       const offset = (page - 1) * limit;
-      const userId = req.query.user_id;
-      const startDate = req.query.start_date;
-      const endDate = req.query.end_date;
+      const userEmail = req.query.user;
+      const dateFrom = req.query.dateFrom;
+      const dateTo = req.query.dateTo;
       const language = req.query.language;
-      const keyword = req.query.keyword;
+      const search = req.query.search;
 
       // Build WHERE clause
       let whereConditions = [];
       let queryParams = [];
       let paramIndex = 1;
 
-      if (userId) {
-        whereConditions.push(`ch.user_id = $${paramIndex}`);
-        queryParams.push(parseInt(userId));
+      if (userEmail) {
+        whereConditions.push(`p.email ILIKE $${paramIndex}`);
+        queryParams.push(`%${userEmail}%`);
         paramIndex++;
       }
 
-      if (startDate) {
+      if (dateFrom) {
         whereConditions.push(`ch.created_at >= $${paramIndex}`);
-        queryParams.push(startDate);
+        queryParams.push(dateFrom);
         paramIndex++;
       }
 
-      if (endDate) {
+      if (dateTo) {
         whereConditions.push(`ch.created_at <= $${paramIndex}`);
-        queryParams.push(endDate);
+        queryParams.push(dateTo);
         paramIndex++;
       }
 
@@ -68,11 +68,11 @@ router.get(
         paramIndex++;
       }
 
-      if (keyword) {
+      if (search) {
         whereConditions.push(
           `(ch.message ILIKE $${paramIndex} OR ch.reply ILIKE $${paramIndex})`
         );
-        queryParams.push(`%${keyword}%`);
+        queryParams.push(`%${search}%`);
         paramIndex++;
       }
 
@@ -91,7 +91,12 @@ router.get(
       // Get chats
       const result = await pool.query(
         `SELECT 
-         ch.id, ch.message, ch.reply, ch.language, ch.sources, ch.created_at,
+         ch.id, 
+         ch.message as user_message, 
+         ch.reply as ai_response, 
+         ch.language, 
+         ch.sources, 
+         ch.created_at,
          p.id as user_id, p.name as user_name, p.email as user_email
        FROM chat_history ch
        LEFT JOIN profiles p ON ch.user_id = p.id
@@ -141,7 +146,12 @@ router.get("/:id", async (req, res) => {
 
     const result = await pool.query(
       `SELECT 
-         ch.*,
+         ch.id,
+         ch.message as user_message,
+         ch.reply as ai_response,
+         ch.language,
+         ch.sources,
+         ch.created_at,
          p.id as user_id, p.name as user_name, p.email as user_email
        FROM chat_history ch
        LEFT JOIN profiles p ON ch.user_id = p.id

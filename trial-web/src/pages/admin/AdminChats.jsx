@@ -48,12 +48,14 @@ export default function AdminChats() {
       };
 
       const response = await adminChatsAPI.getChats(params);
-      setChats(response.data.chats || []);
-      setTotalPages(Math.ceil((response.data.total || 0) / limit));
+      setChats(response.data.data.chats || []);
+      setTotalPages(
+        Math.ceil((response.data.data.pagination.total || 0) / limit)
+      );
 
       // Calculate stats
-      const total = response.data.total || 0;
-      const chatList = response.data.chats || [];
+      const total = response.data.data.pagination.total || 0;
+      const chatList = response.data.data.chats || [];
       const indonesian = chatList.filter(
         (c) => c.language === "id" || c.language === "indonesian"
       ).length;
@@ -74,7 +76,7 @@ export default function AdminChats() {
   const handleViewDetail = async (chat) => {
     try {
       const response = await adminChatsAPI.getChat(chat.id);
-      setSelectedChat(response.data);
+      setSelectedChat(response.data.data.chat);
       setShowDetailModal(true);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to load chat details");

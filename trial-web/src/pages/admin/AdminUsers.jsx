@@ -40,8 +40,10 @@ export default function AdminUsers() {
       };
 
       const response = await adminUsersAPI.getUsers(params);
-      setUsers(response.data.users || []);
-      setTotalPages(Math.ceil((response.data.total || 0) / limit));
+      setUsers(response.data.data.users || []);
+      setTotalPages(
+        Math.ceil((response.data.data.pagination.total || 0) / limit)
+      );
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load users");
