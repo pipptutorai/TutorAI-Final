@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { adminChatsAPI } from "../../lib/api";
+import AdminLayout from "../../components/AdminLayout";
 
 export default function AdminChats() {
   const [chats, setChats] = useState([]);
@@ -131,41 +132,33 @@ export default function AdminChats() {
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
-      <h1 style={{ color: "#333" }}>Chat Monitoring</h1>
-
+    <AdminLayout title="Chat Monitoring">
       {/* Statistics */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "15px",
+          gap: "12px",
           marginBottom: "20px",
         }}
       >
         <div style={statCardStyle}>
-          <div
-            style={{ fontSize: "32px", fontWeight: "bold", color: "#2196F3" }}
-          >
+          <div style={{ fontSize: "32px", fontWeight: "600", color: "#333" }}>
             {stats.totalChats}
           </div>
           <div style={{ color: "#666" }}>Total Chats</div>
         </div>
         <div style={statCardStyle}>
-          <div
-            style={{ fontSize: "32px", fontWeight: "bold", color: "#4CAF50" }}
-          >
+          <div style={{ fontSize: "32px", fontWeight: "600", color: "#333" }}>
             {stats.indonesian}
           </div>
-          <div style={{ color: "#666" }}>Indonesian</div>
+          <div style={{ color: "#666", fontSize: "13px" }}>Indonesian</div>
         </div>
         <div style={statCardStyle}>
-          <div
-            style={{ fontSize: "32px", fontWeight: "bold", color: "#FF9800" }}
-          >
+          <div style={{ fontSize: "32px", fontWeight: "600", color: "#333" }}>
             {stats.english}
           </div>
-          <div style={{ color: "#666" }}>English</div>
+          <div style={{ color: "#666", fontSize: "13px" }}>English</div>
         </div>
       </div>
 
@@ -585,16 +578,16 @@ export default function AdminChats() {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 }
 
 // Styles
 const statCardStyle = {
   background: "white",
-  padding: "20px",
+  padding: "16px",
   borderRadius: "8px",
-  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+  border: "1px solid #e0e0e0",
   textAlign: "center",
 };
 

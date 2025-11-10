@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { chatAPI } from "../lib/api";
-import { clearAuth } from "../utils/auth";
+import Navbar from "../components/Navbar";
 
 export default function History() {
   const navigate = useNavigate();
@@ -41,28 +41,18 @@ export default function History() {
     }
   };
 
-  const handleLogout = () => {
-    clearAuth();
-    navigate("/login");
-  };
-
   if (loading) {
-    return <div style={styles.loading}>Loading...</div>;
+    return (
+      <div style={styles.container}>
+        <Navbar isAdmin={false} />
+        <div style={styles.loading}>Loading...</div>
+      </div>
+    );
   }
 
   return (
     <div style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.logo}>Chat History</h1>
-        <div style={styles.headerRight}>
-          <Link to="/home" style={styles.linkButton}>
-            Home
-          </Link>
-          <button onClick={handleLogout} style={styles.logoutButton}>
-            Logout
-          </button>
-        </div>
-      </div>
+      <Navbar isAdmin={false} />
 
       <div style={styles.content}>
         {chats.length === 0 ? (
@@ -129,42 +119,7 @@ export default function History() {
 const styles = {
   container: {
     minHeight: "100vh",
-    background: "#f5f5f5",
-  },
-  header: {
-    background: "white",
-    padding: "16px 24px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-  },
-  logo: {
-    fontSize: "24px",
-    fontWeight: "bold",
-    color: "#4f46e5",
-  },
-  headerRight: {
-    display: "flex",
-    gap: "16px",
-  },
-  linkButton: {
-    padding: "8px 16px",
-    background: "#4f46e5",
-    color: "white",
-    borderRadius: "8px",
-    textDecoration: "none",
-    fontSize: "14px",
-    transition: "background-color 0.2s",
-  },
-  logoutButton: {
-    padding: "8px 16px",
-    background: "#ef4444",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "14px",
+    background: "#f9f9f9",
   },
   content: {
     padding: "24px",
@@ -188,23 +143,22 @@ const styles = {
     display: "inline-block",
     marginTop: "16px",
     padding: "12px 24px",
-    background: "#4f46e5",
+    background: "#333",
     color: "white",
-    borderRadius: "8px",
+    borderRadius: "6px",
     textDecoration: "none",
-    fontWeight: "600",
-    transition: "background-color 0.2s",
+    fontWeight: "500",
   },
   chatList: {
     display: "flex",
     flexDirection: "column",
-    gap: "16px",
+    gap: "12px",
   },
   chatCard: {
     background: "white",
-    borderRadius: "12px",
-    padding: "20px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    borderRadius: "8px",
+    border: "1px solid #e0e0e0",
+    padding: "16px",
   },
   chatHeader: {
     display: "flex",
@@ -218,14 +172,13 @@ const styles = {
   },
   deleteButton: {
     padding: "4px 12px",
-    background: "#ef4444",
+    background: "#666",
     color: "white",
     border: "none",
-    borderRadius: "6px",
+    borderRadius: "4px",
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: "500",
-    transition: "background-color 0.2s",
   },
   chatBody: {
     display: "flex",
@@ -240,7 +193,7 @@ const styles = {
     fontSize: "14px",
     color: "#555",
     paddingLeft: "16px",
-    borderLeft: "3px solid #4f46e5",
+    borderLeft: "2px solid #333",
   },
   pagination: {
     display: "flex",
@@ -251,14 +204,13 @@ const styles = {
   },
   pageButton: {
     padding: "8px 16px",
-    background: "#4f46e5",
+    background: "#333",
     color: "white",
     border: "none",
-    borderRadius: "8px",
+    borderRadius: "6px",
     cursor: "pointer",
     fontSize: "14px",
-    fontWeight: "600",
-    transition: "background-color 0.2s",
+    fontWeight: "500",
   },
   pageInfo: {
     fontSize: "14px",

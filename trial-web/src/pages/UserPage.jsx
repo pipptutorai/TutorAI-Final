@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { chatAPI } from "../lib/api";
-import { getUser, clearAuth } from "../utils/auth";
+import { getUser } from "../utils/auth";
+import Navbar from "../components/Navbar";
 
 export default function UserPage() {
   const navigate = useNavigate();
@@ -67,27 +68,9 @@ export default function UserPage() {
     }
   };
 
-  const handleLogout = () => {
-    clearAuth();
-    toast.success("Logged out successfully");
-    navigate("/login");
-  };
-
   return (
     <div style={styles.container}>
-      {/* Header */}
-      <div style={styles.header}>
-        <h1 style={styles.logo}>TutorAI</h1>
-        <div style={styles.headerRight}>
-          <span style={styles.userName}>{user?.name}</span>
-          <Link to="/history" style={styles.linkButton}>
-            History
-          </Link>
-          <button onClick={handleLogout} style={styles.logoutButton}>
-            Logout
-          </button>
-        </div>
-      </div>
+      <Navbar isAdmin={false} />
 
       {/* Chat Area */}
       <div style={styles.chatContainer}>
@@ -154,47 +137,7 @@ const styles = {
     height: "100vh",
     display: "flex",
     flexDirection: "column",
-    background: "#f5f5f5",
-  },
-  header: {
-    background: "white",
-    padding: "16px 24px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-  },
-  logo: {
-    fontSize: "24px",
-    fontWeight: "bold",
-    color: "#4f46e5",
-  },
-  headerRight: {
-    display: "flex",
-    gap: "16px",
-    alignItems: "center",
-  },
-  userName: {
-    fontWeight: "500",
-    color: "#333",
-  },
-  linkButton: {
-    padding: "8px 16px",
-    background: "#4f46e5",
-    color: "white",
-    borderRadius: "8px",
-    textDecoration: "none",
-    fontSize: "14px",
-    transition: "background-color 0.2s",
-  },
-  logoutButton: {
-    padding: "8px 16px",
-    background: "#ef4444",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "14px",
+    background: "#f9f9f9",
   },
   chatContainer: {
     flex: 1,
@@ -211,10 +154,10 @@ const styles = {
     padding: "40px 20px",
   },
   emptyTitle: {
-    fontSize: "24px",
+    fontSize: "28px",
     fontWeight: "600",
     color: "#333",
-    marginBottom: "8px",
+    marginBottom: "12px",
   },
   emptyText: {
     fontSize: "16px",
@@ -238,10 +181,10 @@ const styles = {
   },
   messageContent: {
     padding: "12px 16px",
-    borderRadius: "12px",
+    borderRadius: "8px",
     background: "white",
-    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-    lineHeight: "1.5",
+    border: "1px solid #e0e0e0",
+    lineHeight: "1.6",
     color: "#333",
   },
   sources: {
@@ -253,31 +196,33 @@ const styles = {
   inputContainer: {
     background: "white",
     padding: "16px 24px",
-    boxShadow: "0 -2px 8px rgba(0,0,0,0.1)",
+    borderTop: "1px solid #e0e0e0",
   },
   inputForm: {
     display: "flex",
     gap: "12px",
+    maxWidth: "1000px",
+    margin: "0 auto",
   },
   input: {
     flex: 1,
     padding: "12px 16px",
-    border: "1px solid #ddd",
-    borderRadius: "24px",
-    fontSize: "16px",
+    border: "1px solid #e0e0e0",
+    borderRadius: "8px",
+    fontSize: "15px",
     outline: "none",
     color: "#333",
     backgroundColor: "white",
   },
   sendButton: {
     padding: "12px 24px",
-    background: "#4f46e5",
+    background: "#333",
     color: "white",
     border: "none",
-    borderRadius: "24px",
+    borderRadius: "8px",
     cursor: "pointer",
     fontSize: "14px",
-    fontWeight: "600",
+    fontWeight: "500",
     transition: "background-color 0.2s",
   },
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { adminUsersAPI } from "../../lib/api";
+import AdminLayout from "../../components/AdminLayout";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -90,9 +91,7 @@ export default function AdminUsers() {
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
-      <h1 style={{ color: "#333" }}>User Management</h1>
-
+    <AdminLayout title="User Management">
       {/* Filters */}
       <div
         style={{
@@ -500,7 +499,7 @@ export default function AdminUsers() {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 }
 

@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { adminStatsAPI } from "../../lib/api";
-import { clearAuth } from "../../utils/auth";
+import Navbar from "../../components/Navbar";
+import AdminNav from "../../components/AdminNav";
 
 export default function AdminPage() {
-  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -25,39 +24,22 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogout = () => {
-    clearAuth();
-    navigate("/login");
-  };
-
   if (loading) {
-    return <div style={styles.loading}>Loading...</div>;
+    return (
+      <div style={styles.container}>
+        <Navbar isAdmin={true} />
+        <div style={styles.loading}>Loading...</div>
+      </div>
+    );
   }
 
   return (
     <div style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.logo}>TutorAI Admin</h1>
-        <button onClick={handleLogout} style={styles.logoutButton}>
-          Logout
-        </button>
-      </div>
+      <Navbar isAdmin={true} />
+      <AdminNav />
 
       <div style={styles.content}>
-        <div style={styles.nav}>
-          <Link to="/admin" style={styles.navItemActive}>
-            Dashboard
-          </Link>
-          <Link to="/admin/users" style={styles.navItem}>
-            Users
-          </Link>
-          <Link to="/admin/documents" style={styles.navItem}>
-            Documents
-          </Link>
-          <Link to="/admin/chats" style={styles.navItem}>
-            Chats
-          </Link>
-        </div>
+        <h2 style={styles.pageTitle}>Dashboard</h2>
 
         <div style={styles.statsGrid}>
           <div style={styles.statCard}>
@@ -100,86 +82,48 @@ export default function AdminPage() {
 const styles = {
   container: {
     minHeight: "100vh",
-    background: "#f5f5f5",
-  },
-  header: {
-    background: "white",
-    padding: "16px 24px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-  },
-  logo: {
-    fontSize: "24px",
-    fontWeight: "bold",
-    color: "#4f46e5",
-  },
-  logoutButton: {
-    padding: "8px 16px",
-    background: "#ef4444",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
+    background: "#f9f9f9",
   },
   content: {
     padding: "24px",
     maxWidth: "1400px",
     margin: "0 auto",
   },
+  pageTitle: {
+    fontSize: "24px",
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: "24px",
+  },
   loading: {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    height: "100vh",
-  },
-  nav: {
-    display: "flex",
-    gap: "8px",
-    marginBottom: "24px",
-    background: "white",
-    padding: "16px",
-    borderRadius: "12px",
-  },
-  navItem: {
-    padding: "12px 24px",
-    borderRadius: "8px",
-    textDecoration: "none",
+    minHeight: "400px",
     color: "#666",
-    fontSize: "14px",
-    fontWeight: "500",
-    transition: "background-color 0.2s",
-  },
-  navItemActive: {
-    padding: "12px 24px",
-    borderRadius: "8px",
-    textDecoration: "none",
-    color: "white",
-    fontSize: "14px",
-    fontWeight: "500",
-    background: "#4f46e5",
   },
   statsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: "20px",
+    gap: "16px",
   },
   statCard: {
     background: "white",
-    borderRadius: "12px",
-    padding: "24px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    borderRadius: "8px",
+    border: "1px solid #e0e0e0",
+    padding: "20px",
   },
   statLabel: {
-    fontSize: "14px",
+    fontSize: "13px",
     color: "#666",
-    marginBottom: "12px",
+    marginBottom: "8px",
     fontWeight: "500",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
   },
   statValue: {
     fontSize: "32px",
-    fontWeight: "bold",
+    fontWeight: "600",
     color: "#333",
   },
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { adminDocumentsAPI } from "../../lib/api";
+import AdminLayout from "../../components/AdminLayout";
 
 export default function AdminDocuments() {
   const [documents, setDocuments] = useState([]);
@@ -195,16 +196,14 @@ export default function AdminDocuments() {
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "1400px", margin: "0 auto" }}>
-      <h1 style={{ color: "#333" }}>Document Management</h1>
-
+    <AdminLayout title="Document Management">
       {/* Upload Section */}
       <div
         style={{
           background: "white",
           padding: "20px",
           borderRadius: "8px",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+          border: "1px solid #e0e0e0",
           marginBottom: "20px",
         }}
       >
@@ -599,7 +598,7 @@ export default function AdminDocuments() {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 }
 
