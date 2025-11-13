@@ -7,31 +7,26 @@ export default function AdminChats() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [userFilter, setUserFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 10;
 
-  // Modals
   const [selectedChat, setSelectedChat] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [chatToDelete, setChatToDelete] = useState(null);
 
-  // Statistics
   const [stats, setStats] = useState({
     totalChats: 0,
     indonesian: 0,
     english: 0,
   });
 
-  // Load chats
   useEffect(() => {
     loadChats();
   }, [currentPage, searchTerm, userFilter, dateFrom, dateTo]);
@@ -54,7 +49,6 @@ export default function AdminChats() {
         Math.ceil((response.data.data.pagination.total || 0) / limit)
       );
 
-      // Calculate stats
       const total = response.data.data.pagination.total || 0;
       const chatList = response.data.data.chats || [];
       const indonesian = chatList.filter(
@@ -106,7 +100,6 @@ export default function AdminChats() {
 
       const response = await adminChatsAPI.exportChats(params);
 
-      // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -133,78 +126,47 @@ export default function AdminChats() {
 
   return (
     <AdminLayout title="Chat Monitoring">
+      {/* Floating Background */}
+      <div style={floatingBackgroundStyle}></div>
+
       {/* Statistics */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "12px",
-          marginBottom: "20px",
-        }}
-      >
-        <div style={statCardStyle}>
-          <div style={{ fontSize: "32px", fontWeight: "600", color: "#333" }}>
-            {stats.totalChats}
-          </div>
-          <div style={{ color: "#666" }}>Total Chats</div>
+      <div style={statsGrid}>
+        <div style={{ ...statCardStyle, borderTop: "4px solid #153C30" }}>
+          <div style={cardLabel}>Total Chats</div>
+          <div style={cardValue}>{stats.totalChats}</div>
         </div>
-        <div style={statCardStyle}>
-          <div style={{ fontSize: "32px", fontWeight: "600", color: "#333" }}>
-            {stats.indonesian}
-          </div>
-          <div style={{ color: "#666", fontSize: "13px" }}>Indonesian</div>
+        <div style={{ ...statCardStyle, borderTop: "4px solid #2D7A5F" }}>
+          <div style={cardLabel}>Indonesian</div>
+          <div style={cardValue}>{stats.indonesian}</div>
         </div>
-        <div style={statCardStyle}>
-          <div style={{ fontSize: "32px", fontWeight: "600", color: "#333" }}>
-            {stats.english}
-          </div>
-          <div style={{ color: "#666", fontSize: "13px" }}>English</div>
+        <div style={{ ...statCardStyle, borderTop: "4px solid #94A3B8" }}>
+          <div style={cardLabel}>English</div>
+          <div style={cardValue}>{stats.english}</div>
         </div>
       </div>
 
       {/* Filters */}
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          marginBottom: "20px",
-          flexWrap: "wrap",
-        }}
-      >
+      <div style={filterBar}>
         <input
           type="text"
-          placeholder=" Search messages..."
+          placeholder="🔍 Search messages..."
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          style={{
-            flex: "1",
-            minWidth: "200px",
-            padding: "10px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-          }}
+          style={inputStyle}
         />
-
         <input
           type="text"
-          placeholder="Filter by user email..."
+          placeholder="📧 Filter by user email..."
           value={userFilter}
           onChange={(e) => {
             setUserFilter(e.target.value);
             setCurrentPage(1);
           }}
-          style={{
-            flex: "1",
-            minWidth: "200px",
-            padding: "10px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-          }}
+          style={inputStyle}
         />
-
         <input
           type="date"
           value={dateFrom}
@@ -212,13 +174,8 @@ export default function AdminChats() {
             setDateFrom(e.target.value);
             setCurrentPage(1);
           }}
-          style={{
-            padding: "10px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-          }}
+          style={inputStyle}
         />
-
         <input
           type="date"
           value={dateTo}
@@ -226,76 +183,31 @@ export default function AdminChats() {
             setDateTo(e.target.value);
             setCurrentPage(1);
           }}
-          style={{
-            padding: "10px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-          }}
+          style={inputStyle}
         />
-
-        <button
-          onClick={loadChats}
-          style={{
-            padding: "10px 20px",
-            background: "#4CAF50",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
+        <button onClick={loadChats} style={buttonPrimary}>
           Refresh
         </button>
-
-        <button
-          onClick={handleExportCSV}
-          style={{
-            padding: "10px 20px",
-            background: "#2196F3",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
+        <button onClick={handleExportCSV} style={buttonSecondary}>
           Export CSV
         </button>
       </div>
 
       {/* Error Message */}
-      {error && (
-        <div
-          style={{
-            padding: "15px",
-            background: "#fee",
-            color: "#c33",
-            borderRadius: "4px",
-            marginBottom: "20px",
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {error && <div style={errorBox}>{error}</div>}
 
-      {/* Loading State */}
+      {/* Loading */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "40px" }}>
-          <p>Loading chats...</p>
+        <div style={{ textAlign: "center", padding: "40px", color: "#64748B" }}>
+          Loading chats...
         </div>
       ) : (
         <>
-          {/* Chats Table */}
-          <div style={{ overflowX: "auto" }}>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                background: "white",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-              }}
-            >
+          {/* Table */}
+          <div style={tableWrapper}>
+            <table style={tableStyle}>
               <thead>
-                <tr style={{ background: "#f5f5f5" }}>
+                <tr style={{ background: "#F8FAFB" }}>
                   <th style={tableHeaderStyle}>User</th>
                   <th style={tableHeaderStyle}>Message</th>
                   <th style={tableHeaderStyle}>Language</th>
@@ -306,79 +218,57 @@ export default function AdminChats() {
               <tbody>
                 {!chats || chats.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan="5"
-                      style={{ textAlign: "center", padding: "40px" }}
-                    >
+                    <td colSpan="5" style={{ textAlign: "center", padding: "40px", color: "#64748B" }}>
                       No chats found
                     </td>
                   </tr>
                 ) : (
                   chats.map((chat) => (
-                    <tr
-                      key={chat.id}
-                      style={{ borderBottom: "1px solid #eee" }}
-                    >
+                    <tr key={chat.id} style={{ borderBottom: "1px solid #E5E7EB" }}>
                       <td style={tableCellStyle}>
-                        <div>
-                          <div style={{ fontWeight: "500" }}>
-                            {chat.user_name || "Unknown"}
-                          </div>
-                          <div style={{ fontSize: "12px", color: "#666" }}>
-                            {chat.user_email}
-                          </div>
+                        <div style={{ fontWeight: 600, color: "#1E293B" }}>
+                          {chat.user_name || "Unknown"}
+                        </div>
+                        <div style={{ fontSize: "12px", color: "#64748B" }}>
+                          {chat.user_email}
                         </div>
                       </td>
                       <td style={tableCellStyle}>
-                        <div style={{ maxWidth: "400px" }}>
-                          {truncateText(chat.user_message)}
-                        </div>
+                        {truncateText(chat.user_message)}
                       </td>
                       <td style={tableCellStyle}>
                         <span
                           style={{
-                            padding: "4px 8px",
-                            borderRadius: "12px",
-                            fontSize: "12px",
+                            padding: "6px 10px",
+                            borderRadius: "8px",
                             background:
-                              chat.language === "id" ? "#e3f2fd" : "#fff3cd",
+                              chat.language === "id"
+                                ? "rgba(21, 60, 48, 0.08)"
+                                : "rgba(45, 122, 95, 0.08)",
                             color:
-                              chat.language === "id" ? "#1976d2" : "#856404",
+                              chat.language === "id"
+                                ? "#153C30"
+                                : "#2D7A5F",
+                            fontWeight: 600,
+                            fontSize: "12px",
                           }}
                         >
-                          {chat.language === "id" ? " ID" : " EN"}
+                          {chat.language === "id" ? "ID" : "EN"}
                         </span>
                       </td>
-                      <td style={tableCellStyle}>
+                      <td style={{ ...tableCellStyle, color: "#64748B" }}>
                         {new Date(chat.created_at).toLocaleString()}
                       </td>
                       <td style={tableCellStyle}>
                         <button
                           onClick={() => handleViewDetail(chat)}
-                          style={{
-                            padding: "5px 10px",
-                            marginRight: "5px",
-                            background: "#2196F3",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                          }}
+                          style={buttonView}
                         >
-                          ️ View
+                          View
                         </button>
                         <button
                           onClick={() => openDeleteModal(chat)}
-                          style={{
-                            padding: "5px 10px",
-                            background: "#f44336",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                          }}
+                          style={buttonDelete}
                         >
                           Delete
                         </button>
@@ -392,45 +282,29 @@ export default function AdminChats() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "10px",
-                marginTop: "20px",
-              }}
-            >
+            <div style={paginationStyle}>
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
                 style={{
-                  padding: "8px 15px",
-                  background: currentPage === 1 ? "#ccc" : "#2196F3",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
+                  ...buttonPrimary,
+                  opacity: currentPage === 1 ? 0.5 : 1,
                   cursor: currentPage === 1 ? "not-allowed" : "pointer",
                 }}
               >
                 ← Previous
               </button>
-
-              <span>
+              <span style={{ color: "#64748B" }}>
                 Page {currentPage} of {totalPages}
               </span>
-
               <button
                 onClick={() =>
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={currentPage === totalPages}
                 style={{
-                  padding: "8px 15px",
-                  background: currentPage === totalPages ? "#ccc" : "#2196F3",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
+                  ...buttonPrimary,
+                  opacity: currentPage === totalPages ? 0.5 : 1,
                   cursor:
                     currentPage === totalPages ? "not-allowed" : "pointer",
                 }}
@@ -442,13 +316,12 @@ export default function AdminChats() {
         </>
       )}
 
-      {/* Chat Detail Modal */}
+      {/* Detail Modal */}
       {showDetailModal && selectedChat && (
         <div style={modalOverlayStyle}>
-          <div style={{ ...modalContentStyle, maxWidth: "700px" }}>
-            <h2>Chat Details</h2>
-
-            <div style={{ marginBottom: "20px" }}>
+          <div style={modalContentStyle}>
+            <h2 style={modalTitle}>Chat Details</h2>
+            <div style={{ marginBottom: "20px", color: "#1E293B" }}>
               <strong>User:</strong> {selectedChat.user_name} (
               {selectedChat.user_email})
               <br />
@@ -457,69 +330,21 @@ export default function AdminChats() {
               <strong>Timestamp:</strong>{" "}
               {new Date(selectedChat.created_at).toLocaleString()}
             </div>
-
-            <div
-              style={{
-                background: "#f5f5f5",
-                padding: "15px",
-                borderRadius: "8px",
-                marginBottom: "15px",
-              }}
-            >
+            <div style={modalBlock}>
               <strong>User Message:</strong>
-              <p style={{ marginTop: "10px", whiteSpace: "pre-wrap" }}>
-                {selectedChat.user_message}
-              </p>
+              <p style={{ marginTop: "10px" }}>{selectedChat.user_message}</p>
             </div>
-
-            <div
-              style={{
-                background: "#e3f2fd",
-                padding: "15px",
-                borderRadius: "8px",
-                marginBottom: "15px",
-              }}
-            >
+            <div style={{ ...modalBlock, background: "rgba(45, 122, 95, 0.08)" }}>
               <strong>AI Response:</strong>
-              <p style={{ marginTop: "10px", whiteSpace: "pre-wrap" }}>
-                {selectedChat.ai_response}
-              </p>
+              <p style={{ marginTop: "10px" }}>{selectedChat.ai_response}</p>
             </div>
-
-            {selectedChat.sources && selectedChat.sources.length > 0 && (
-              <div style={{ marginBottom: "15px" }}>
-                <strong>Sources ({selectedChat.sources.length}):</strong>
-                <ul style={{ marginTop: "10px", paddingLeft: "20px" }}>
-                  {selectedChat.sources.map((source, idx) => (
-                    <li key={idx} style={{ marginBottom: "5px" }}>
-                      {source.filename || "Unknown"} (Score:{" "}
-                      {source.score?.toFixed(3) || "N/A"})
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                justifyContent: "flex-end",
-              }}
-            >
+            <div style={{ textAlign: "right" }}>
               <button
                 onClick={() => {
                   setShowDetailModal(false);
                   setSelectedChat(null);
                 }}
-                style={{
-                  padding: "10px 20px",
-                  background: "#2196F3",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
+                style={buttonPrimary}
               >
                 Close
               </button>
@@ -528,50 +353,27 @@ export default function AdminChats() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation */}
       {showDeleteModal && chatToDelete && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
-            <h2>Delete Chat</h2>
-            <p>
+            <h2 style={modalTitle}>Delete Chat</h2>
+            <p style={{ color: "#64748B" }}>
               Are you sure you want to delete this chat from{" "}
               <strong>{chatToDelete.user_name}</strong>? This action cannot be
               undone.
             </p>
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                justifyContent: "flex-end",
-                marginTop: "20px",
-              }}
-            >
+            <div style={{ textAlign: "right", marginTop: "20px" }}>
               <button
                 onClick={() => {
                   setShowDeleteModal(false);
                   setChatToDelete(null);
                 }}
-                style={{
-                  padding: "10px 20px",
-                  background: "#ccc",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
+                style={buttonSecondary}
               >
                 Cancel
               </button>
-              <button
-                onClick={handleDeleteChat}
-                style={{
-                  padding: "10px 20px",
-                  background: "#f44336",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
+              <button onClick={handleDeleteChat} style={buttonDelete}>
                 Delete
               </button>
             </div>
@@ -582,25 +384,136 @@ export default function AdminChats() {
   );
 }
 
-// Styles
+/* === THEME STYLES === */
+const floatingBackgroundStyle = {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  zIndex: -1,
+  background:
+    "linear-gradient(135deg, rgba(21,60,48,0.02), rgba(45,122,95,0.03))",
+};
+
+const statsGrid = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "20px",
+  marginBottom: "32px",
+};
+
 const statCardStyle = {
-  background: "white",
+  background: "#fff",
+  borderRadius: "16px",
+  padding: "24px",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+  transition: "transform 0.3s ease",
+};
+
+const cardLabel = {
+  textTransform: "uppercase",
+  fontSize: "13px",
+  color: "#64748B",
+  fontWeight: 600,
+  marginBottom: "8px",
+};
+
+const cardValue = {
+  fontSize: "36px",
+  color: "#1E293B",
+  fontWeight: 700,
+};
+
+const filterBar = {
+  display: "flex",
+  gap: "12px",
+  flexWrap: "wrap",
+  marginBottom: "32px",
+};
+
+const inputStyle = {
+  flex: "1",
+  minWidth: "180px",
+  padding: "10px 14px",
+  border: "1px solid #E5E7EB",
+  borderRadius: "12px",
+  color: "#1E293B",
+  background: "#fff",
+};
+
+const buttonPrimary = {
+  background: "linear-gradient(135deg, #153C30, #2D7A5F)",
+  color: "#fff",
+  padding: "10px 20px",
+  borderRadius: "12px",
+  border: "none",
+  cursor: "pointer",
+  transition: "transform 0.3s ease",
+};
+
+const buttonSecondary = {
+  background: "#F8FAFB",
+  color: "#153C30",
+  padding: "10px 20px",
+  borderRadius: "12px",
+  border: "1px solid #E5E7EB",
+  cursor: "pointer",
+};
+
+const buttonView = {
+  ...buttonSecondary,
+  marginRight: "6px",
+};
+
+const buttonDelete = {
+  background: "#EF4444",
+  color: "#fff",
+  padding: "8px 16px",
+  borderRadius: "12px",
+  border: "none",
+  cursor: "pointer",
+};
+
+const errorBox = {
+  background: "#fee2e2",
+  color: "#991b1b",
+  borderRadius: "12px",
   padding: "16px",
-  borderRadius: "8px",
-  border: "1px solid #e0e0e0",
-  textAlign: "center",
+  marginBottom: "20px",
+};
+
+const tableWrapper = {
+  overflowX: "auto",
+  background: "#fff",
+  borderRadius: "16px",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+};
+
+const tableStyle = {
+  width: "100%",
+  borderCollapse: "collapse",
 };
 
 const tableHeaderStyle = {
-  padding: "12px",
+  padding: "14px 16px",
   textAlign: "left",
-  borderBottom: "2px solid #ddd",
-  fontWeight: "600",
+  color: "#153C30",
+  fontWeight: 700,
+  borderBottom: "2px solid #E5E7EB",
 };
 
 const tableCellStyle = {
-  padding: "12px",
-  textAlign: "left",
+  padding: "12px 16px",
+  color: "#1E293B",
+};
+
+const paginationStyle = {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: "16px",
+  marginTop: "32px",
 };
 
 const modalOverlayStyle = {
@@ -609,7 +522,7 @@ const modalOverlayStyle = {
   left: 0,
   right: 0,
   bottom: 0,
-  background: "rgba(0,0,0,0.5)",
+  background: "rgba(0,0,0,0.4)",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
@@ -617,11 +530,24 @@ const modalOverlayStyle = {
 };
 
 const modalContentStyle = {
-  background: "white",
-  padding: "30px",
-  borderRadius: "8px",
-  maxWidth: "500px",
+  background: "#fff",
+  borderRadius: "16px",
+  padding: "32px",
+  maxWidth: "600px",
   width: "90%",
-  maxHeight: "90vh",
-  overflow: "auto",
+  boxShadow: "0 12px 24px rgba(21,60,48,0.12)",
+};
+
+const modalTitle = {
+  color: "#153C30",
+  fontSize: "20px",
+  fontWeight: 700,
+  marginBottom: "16px",
+};
+
+const modalBlock = {
+  background: "#F8FAFB",
+  padding: "16px",
+  borderRadius: "12px",
+  marginBottom: "16px",
 };

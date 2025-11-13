@@ -48,13 +48,13 @@ export default function Navbar({ isAdmin = false }) {
 
 const styles = {
   navbar: {
-    background: "#fff",
-    borderBottom: "1px solid #e0e0e0",
+    background: "#153C30", // warna ijo tua
+    borderBottom: "1px solid #0f2a21",
     padding: "0",
     position: "sticky",
     top: 0,
     zIndex: 1000,
-    boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
   },
   container: {
     maxWidth: "1400px",
@@ -72,7 +72,7 @@ const styles = {
   logo: {
     fontSize: "24px",
     fontWeight: "700",
-    color: "#333",
+    color: "#ffffff", // tulisan putih
     margin: 0,
     cursor: "pointer",
     userSelect: "none",
@@ -80,8 +80,8 @@ const styles = {
   badge: {
     fontSize: "12px",
     fontWeight: "500",
-    background: "#f5f5f5",
-    color: "#666",
+    background: "#1e5442",
+    color: "#ffffff",
     padding: "4px 8px",
     borderRadius: "4px",
     marginLeft: "8px",
@@ -93,14 +93,14 @@ const styles = {
   },
   userName: {
     fontSize: "14px",
-    color: "#666",
+    color: "#ffffff", // tulisan putih
     fontWeight: "500",
   },
   navButton: {
     padding: "8px 16px",
-    background: "#f5f5f5",
-    color: "#333",
-    border: "1px solid #e0e0e0",
+    background: "#1e5442",
+    color: "#ffffff",
+    border: "1px solid #1e5442",
     borderRadius: "6px",
     cursor: "pointer",
     fontSize: "14px",
@@ -109,8 +109,8 @@ const styles = {
   },
   logoutButton: {
     padding: "8px 16px",
-    background: "#333",
-    color: "white",
+    background: "#ffffff",
+    color: "#153C30",
     border: "none",
     borderRadius: "6px",
     cursor: "pointer",
@@ -118,4 +118,12 @@ const styles = {
     fontWeight: "500",
     transition: "all 0.2s",
   },
+};
+
+// opsional: kalau mau efek hover biar lebih interaktif
+styles.navButton[":hover"] = {
+  background: "#226e55",
+};
+styles.logoutButton[":hover"] = {
+  background: "#e6e6e6",
 };

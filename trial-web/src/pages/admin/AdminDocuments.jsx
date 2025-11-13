@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { adminDocumentsAPI } from "../../lib/api";
 import AdminLayout from "../../components/AdminLayout";
+import CustomSelect from "../../components/CustomSelect";
+import "./AdminDocuments.css"; 
 
 export default function AdminDocuments() {
   const [documents, setDocuments] = useState([]);
@@ -39,27 +41,16 @@ export default function AdminDocuments() {
         status: statusFilter !== "all" ? statusFilter : undefined,
       };
 
-      console.log("Fetching documents with params:", params);
       const response = await adminDocumentsAPI.getDocuments(params);
-      console.log("Full API Response:", response);
-      console.log("Response data structure:", response.data);
-
-      // Handle nested data structure
       const documentsData = response.data.data || response.data;
-      console.log("Documents data:", documentsData);
-
       setDocuments(documentsData.documents || []);
 
-      // Handle pagination
       const paginationData = documentsData.pagination || {};
       const totalCount = paginationData.total || documentsData.total || 0;
-      console.log("Total documents:", totalCount);
-
       setTotalPages(Math.ceil(totalCount / limit));
       setError(null);
     } catch (err) {
-      console.error("Load documents error:", err);
-      console.error("Error response:", err.response);
+      console.error(err);
       setError(err.response?.data?.message || "Failed to load documents");
     } finally {
       setLoading(false);
@@ -79,11 +70,8 @@ export default function AdminDocuments() {
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
+    else if (e.type === "dragleave") setDragActive(false);
   };
 
   const handleDrop = (e) => {
@@ -101,21 +89,14 @@ export default function AdminDocuments() {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) {
-      setError("Please select a file");
-      return;
-    }
-
+    if (!selectedFile) return setError("Please select a file");
     try {
       setUploading(true);
       const formData = new FormData();
       formData.append("document", selectedFile);
-
       await adminDocumentsAPI.uploadDocument(formData);
       setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      fileInputRef.current.value = "";
       loadDocuments();
       alert("Document uploaded successfully!");
     } catch (err) {
@@ -168,18 +149,17 @@ export default function AdminDocuments() {
       completed: { bg: "#d1e7dd", color: "#0f5132" },
       failed: { bg: "#f8d7da", color: "#842029" },
     };
-
     const style = statusStyles[status] || statusStyles.pending;
-
     return (
       <span
         style={{
-          padding: "4px 8px",
+          padding: "4px 10px",
           borderRadius: "12px",
           fontSize: "12px",
           background: style.bg,
           color: style.color,
           fontWeight: "500",
+          textTransform: "capitalize",
         }}
       >
         {status}
@@ -196,36 +176,18 @@ export default function AdminDocuments() {
   };
 
   return (
-    <AdminLayout title="Document Management">
+    <AdminLayout title="📄 Document Management">
       {/* Upload Section */}
-      <div
-        style={{
-          background: "white",
-          padding: "20px",
-          borderRadius: "8px",
-          border: "1px solid #e0e0e0",
-          marginBottom: "20px",
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Upload PDF Document</h2>
+      <div className="card">
+        <h2 className="section-title">Upload PDF Document</h2>
 
-        {/* Drag & Drop Area */}
         <div
+          className={`dropzone ${dragActive ? "active" : ""}`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          style={{
-            border: `2px dashed ${dragActive ? "#2196F3" : "#ddd"}`,
-            borderRadius: "8px",
-            padding: "40px",
-            textAlign: "center",
-            cursor: "pointer",
-            background: dragActive ? "#f0f8ff" : "#fafafa",
-            transition: "all 0.3s",
-            marginBottom: "15px",
-          }}
         >
           <input
             ref={fileInputRef}
@@ -234,9 +196,7 @@ export default function AdminDocuments() {
             onChange={handleFileSelect}
             style={{ display: "none" }}
           />
-
-          <div style={{ fontSize: "48px", marginBottom: "10px" }}></div>
-          <p style={{ margin: "10px 0", color: "#666" }}>
+          <p>
             {selectedFile ? (
               <>
                 <strong>{selectedFile.name}</strong>
@@ -253,38 +213,21 @@ export default function AdminDocuments() {
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div className="button-row">
           <button
             onClick={handleUpload}
             disabled={!selectedFile || uploading}
-            style={{
-              padding: "10px 20px",
-              background: !selectedFile || uploading ? "#ccc" : "#4CAF50",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: !selectedFile || uploading ? "not-allowed" : "pointer",
-            }}
+            className={`btn ${!selectedFile || uploading ? "btn-disabled" : "btn-primary"}`}
           >
             {uploading ? "Uploading..." : "Upload Document"}
           </button>
-
           {selectedFile && (
             <button
               onClick={() => {
                 setSelectedFile(null);
-                if (fileInputRef.current) {
-                  fileInputRef.current.value = "";
-                }
+                fileInputRef.current.value = "";
               }}
-              style={{
-                padding: "10px 20px",
-                background: "#f44336",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
+              className="btn btn-danger"
             >
               Clear
             </button>
@@ -293,305 +236,161 @@ export default function AdminDocuments() {
       </div>
 
       {/* Filters */}
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          marginBottom: "20px",
-          flexWrap: "wrap",
-        }}
-      >
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setCurrentPage(1);
-          }}
-          style={{
-            padding: "10px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-          }}
-        >
-          <option value="all">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
-          <option value="completed">Completed</option>
-          <option value="failed">Failed</option>
-        </select>
+      <div className="filter-bar">
+        <div className="dropdown-wrapper">
+          <CustomSelect
+            value={statusFilter}
+            onChange={(val) => {
+              setStatusFilter(val);
+              setCurrentPage(1);
+            }}
+            options={[
+              { value: "all", label: "All Status" },
+              { value: "pending", label: "Pending" },
+              { value: "processing", label: "Processing" },
+              { value: "completed", label: "Completed" },
+              { value: "failed", label: "Failed" },
+            ]}
+          />
+        </div>
 
-        <button
-          onClick={loadDocuments}
-          style={{
-            padding: "10px 20px",
-            background: "#4CAF50",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
+        <button onClick={loadDocuments} className="btn btn-primary">
           Refresh
         </button>
       </div>
 
       {/* Error Message */}
-      {error && (
-        <div
-          style={{
-            padding: "15px",
-            background: "#fee",
-            color: "#c33",
-            borderRadius: "4px",
-            marginBottom: "20px",
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {error && <div className="error-box">{error}</div>}
 
-      {/* Loading State */}
+      {/* Table */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "40px" }}>
-          <p>Loading documents...</p>
-        </div>
+        <div className="loading">Loading documents...</div>
       ) : (
-        <>
-          {/* Documents Table */}
-          <div style={{ overflowX: "auto" }}>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                background: "white",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-              }}
-            >
-              <thead>
-                <tr style={{ background: "#f5f5f5" }}>
-                  <th style={tableHeaderStyle}>Filename</th>
-                  <th style={tableHeaderStyle}>Status</th>
-                  <th style={tableHeaderStyle}>Size</th>
-                  <th style={tableHeaderStyle}>Chunks</th>
-                  <th style={tableHeaderStyle}>Embeddings</th>
-                  <th style={tableHeaderStyle}>Uploaded</th>
-                  <th style={tableHeaderStyle}>Actions</th>
+        <div className="table-container">
+          <table className="modern-table">
+            <thead>
+              <tr>
+                <th>Filename</th>
+                <th>Status</th>
+                <th>Size</th>
+                <th>Chunks</th>
+                <th>Embeddings</th>
+                <th>Uploaded</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {documents.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="empty-row">
+                    No documents found
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {!documents || documents.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan="7"
-                      style={{ textAlign: "center", padding: "40px" }}
-                    >
-                      No documents found
+              ) : (
+                documents.map((doc) => (
+                  <tr key={doc.id}>
+                    <td className="truncate">{doc.filename}</td>
+                    <td>{getStatusBadge(doc.status)}</td>
+                    <td>{formatFileSize(doc.file_size || 0)}</td>
+                    <td>{doc.chunk_count || 0}</td>
+                    <td>
+                      {doc.chunk_count > 0 ? (
+                        <>
+                          <strong>
+                            {doc.embedded_count || 0} / {doc.chunk_count || 0}
+                          </strong>
+                          {doc.pending_count > 0 && (
+                            <div className="text-warning">
+                              {doc.pending_count} pending
+                            </div>
+                          )}
+                          {doc.failed_count > 0 && (
+                            <div className="text-danger">
+                              {doc.failed_count} failed
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                    <td>{new Date(doc.created_at).toLocaleString()}</td>
+                    <td>
+                      {doc.status === "failed" && (
+                        <button
+                          onClick={() => handleReindex(doc.id)}
+                          className="btn btn-warning btn-sm"
+                        >
+                          Reindex
+                        </button>
+                      )}
+                      {doc.status === "completed" && (
+                        <button
+                          onClick={() => handleEmbed(doc.id)}
+                          className="btn btn-info btn-sm"
+                        >
+                          Embed
+                        </button>
+                      )}
+                      <button
+                        onClick={() => openDeleteModal(doc)}
+                        className="btn btn-danger btn-sm"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
-                ) : (
-                  documents.map((doc) => (
-                    <tr key={doc.id} style={{ borderBottom: "1px solid #eee" }}>
-                      <td style={tableCellStyle}>
-                        <div
-                          style={{
-                            maxWidth: "300px",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {doc.filename}
-                        </div>
-                      </td>
-                      <td style={tableCellStyle}>
-                        {getStatusBadge(doc.status)}
-                      </td>
-                      <td style={tableCellStyle}>
-                        {formatFileSize(doc.file_size || 0)}
-                      </td>
-                      <td style={tableCellStyle}>{doc.chunk_count || 0}</td>
-                      <td style={tableCellStyle}>
-                        {doc.chunk_count > 0 ? (
-                          <div>
-                            <div
-                              style={{ fontSize: "14px", fontWeight: "500" }}
-                            >
-                              {doc.embedded_count || 0} / {doc.chunk_count || 0}
-                            </div>
-                            {doc.pending_count > 0 && (
-                              <div
-                                style={{ fontSize: "11px", color: "#ff9800" }}
-                              >
-                                {doc.pending_count} pending
-                              </div>
-                            )}
-                            {doc.failed_count > 0 && (
-                              <div
-                                style={{ fontSize: "11px", color: "#f44336" }}
-                              >
-                                {doc.failed_count} failed
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-                      <td style={tableCellStyle}>
-                        {new Date(doc.created_at).toLocaleString()}
-                      </td>
-                      <td style={tableCellStyle}>
-                        {doc.status === "failed" && (
-                          <button
-                            onClick={() => handleReindex(doc.id)}
-                            style={{
-                              padding: "5px 10px",
-                              marginRight: "5px",
-                              background: "#FF9800",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "12px",
-                            }}
-                          >
-                            Reindex
-                          </button>
-                        )}
-                        {doc.status === "completed" && (
-                          <button
-                            onClick={() => handleEmbed(doc.id)}
-                            style={{
-                              padding: "5px 10px",
-                              marginRight: "5px",
-                              background: "#2196F3",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "4px",
-                              cursor: "pointer",
-                              fontSize: "12px",
-                            }}
-                          >
-                            Embed
-                          </button>
-                        )}
-                        <button
-                          onClick={() => openDeleteModal(doc)}
-                          style={{
-                            padding: "5px 10px",
-                            background: "#f44336",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "10px",
-                marginTop: "20px",
-              }}
-            >
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                style={{
-                  padding: "8px 15px",
-                  background: currentPage === 1 ? "#ccc" : "#2196F3",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                }}
-              >
-                ← Previous
-              </button>
-
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
-                style={{
-                  padding: "8px 15px",
-                  background: currentPage === totalPages ? "#ccc" : "#2196F3",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor:
-                    currentPage === totalPages ? "not-allowed" : "pointer",
-                }}
-              >
-                Next →
-              </button>
-            </div>
-          )}
-        </>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className={`btn btn-sm ${currentPage === 1 ? "btn-disabled" : "btn-primary"}`}
+          >
+            ← Prev
+          </button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className={`btn btn-sm ${currentPage === totalPages ? "btn-disabled" : "btn-primary"}`}
+          >
+            Next →
+          </button>
+        </div>
+      )}
+
+      {/* Delete Modal */}
       {showDeleteModal && documentToDelete && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
+        <div className="modal-overlay">
+          <div className="modal-content">
             <h2>Delete Document</h2>
             <p>
               Are you sure you want to delete{" "}
-              <strong>{documentToDelete.filename}</strong>? This will also
-              delete all associated chunks. This action cannot be undone.
+              <strong>{documentToDelete.filename}</strong>? This will also delete
+              all associated chunks.
             </p>
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                justifyContent: "flex-end",
-                marginTop: "20px",
-              }}
-            >
+            <div className="modal-actions">
               <button
                 onClick={() => {
                   setShowDeleteModal(false);
                   setDocumentToDelete(null);
                 }}
-                style={{
-                  padding: "10px 20px",
-                  background: "#ccc",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
+                className="btn btn-light"
               >
                 Cancel
               </button>
-              <button
-                onClick={handleDeleteDocument}
-                style={{
-                  padding: "10px 20px",
-                  background: "#f44336",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
+              <button onClick={handleDeleteDocument} className="btn btn-danger">
                 Delete
               </button>
             </div>
@@ -601,39 +400,3 @@ export default function AdminDocuments() {
     </AdminLayout>
   );
 }
-
-// Styles
-const tableHeaderStyle = {
-  padding: "12px",
-  textAlign: "left",
-  borderBottom: "2px solid #ddd",
-  fontWeight: "600",
-};
-
-const tableCellStyle = {
-  padding: "12px",
-  textAlign: "left",
-};
-
-const modalOverlayStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  background: "rgba(0,0,0,0.5)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1000,
-};
-
-const modalContentStyle = {
-  background: "white",
-  padding: "30px",
-  borderRadius: "8px",
-  maxWidth: "500px",
-  width: "90%",
-  maxHeight: "90vh",
-  overflow: "auto",
-};

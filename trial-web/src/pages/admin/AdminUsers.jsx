@@ -1,29 +1,27 @@
 import { useState, useEffect } from "react";
 import { adminUsersAPI } from "../../lib/api";
 import AdminLayout from "../../components/AdminLayout";
+import CustomSelect from "../../components/CustomSelect";
+import "./AdminUsers.css";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 10;
 
-  // Modals
   const [editingUser, setEditingUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  // Load users
   useEffect(() => {
     loadUsers();
   }, [currentPage, roleFilter, statusFilter, searchTerm]);
@@ -54,32 +52,6 @@ export default function AdminUsers() {
     }
   };
 
-  const handleEditUser = async (e) => {
-    e.preventDefault();
-    try {
-      await adminUsersAPI.updateUser(editingUser.id, {
-        role: editingUser.role,
-        is_active: editingUser.is_active,
-      });
-      setShowEditModal(false);
-      setEditingUser(null);
-      loadUsers();
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to update user");
-    }
-  };
-
-  const handleDeleteUser = async () => {
-    try {
-      await adminUsersAPI.deleteUser(userToDelete.id);
-      setShowDeleteModal(false);
-      setUserToDelete(null);
-      loadUsers();
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete user");
-    }
-  };
-
   const openEditModal = (user) => {
     setEditingUser({ ...user });
     setShowEditModal(true);
@@ -92,201 +64,110 @@ export default function AdminUsers() {
 
   return (
     <AdminLayout title="User Management">
-      {/* Filters */}
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          marginBottom: "20px",
-          flexWrap: "wrap",
-        }}
-      >
+      <div style={styles.filterContainer}>
         <input
           type="text"
-          placeholder=" Search by name or email..."
+          placeholder="Search by name or email here"
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          style={{
-            flex: "1",
-            minWidth: "200px",
-            padding: "10px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-          }}
+          style={styles.searchInput}
         />
 
-        <select
+        <CustomSelect
           value={roleFilter}
-          onChange={(e) => {
-            setRoleFilter(e.target.value);
+          onChange={(val) => {
+            setRoleFilter(val);
             setCurrentPage(1);
           }}
-          style={{
-            padding: "10px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-          }}
-        >
-          <option value="all">All Roles</option>
-          <option value="user">User</option>
-          <option value="admin">Admin</option>
-        </select>
+          options={[
+            { value: "all", label: "All Roles" },
+            { value: "user", label: "User" },
+            { value: "admin", label: "Admin" },
+          ]}
+        />
 
-        <select
+        <CustomSelect
           value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
+          onChange={(val) => {
+            setStatusFilter(val);
             setCurrentPage(1);
           }}
-          style={{
-            padding: "10px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-          }}
-        >
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+          options={[
+            { value: "all", label: "All Status" },
+            { value: "active", label: "Active" },
+            { value: "inactive", label: "Inactive" },
+          ]}
+        />
 
-        <button
-          onClick={loadUsers}
-          style={{
-            padding: "10px 20px",
-            background: "#4CAF50",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
+
+        <button style={styles.refreshButton} onClick={loadUsers}>
           Refresh
         </button>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div
-          style={{
-            padding: "15px",
-            background: "#fee",
-            color: "#c33",
-            borderRadius: "4px",
-            marginBottom: "20px",
-          }}
-        >
-          {error}
-        </div>
-      )}
+      {error && <div style={styles.errorBox}>{error}</div>}
 
-      {/* Loading State */}
       {loading ? (
         <div style={{ textAlign: "center", padding: "40px" }}>
           <p>Loading users...</p>
         </div>
       ) : (
         <>
-          {/* Users Table */}
           <div style={{ overflowX: "auto" }}>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                background: "white",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-              }}
-            >
+            <table style={styles.table}>
               <thead>
-                <tr style={{ background: "#f5f5f5" }}>
-                  <th style={tableHeaderStyle}>Name</th>
-                  <th style={tableHeaderStyle}>Email</th>
-                  <th style={tableHeaderStyle}>Role</th>
-                  <th style={tableHeaderStyle}>Status</th>
-                  <th style={tableHeaderStyle}>Joined</th>
-                  <th style={tableHeaderStyle}>Actions</th>
+                <tr style={styles.tableHeaderRow}>
+                  <th style={styles.tableHeader}>Name</th>
+                  <th style={styles.tableHeader}>Email</th>
+                  <th style={styles.tableHeader}>Role</th>
+                  <th style={styles.tableHeader}>Status</th>
+                  <th style={styles.tableHeader}>Joined</th>
+                  <th style={styles.tableHeader}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {!users || users.length === 0 ? (
+                {users.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan="6"
-                      style={{ textAlign: "center", padding: "40px" }}
-                    >
+                    <td colSpan="6" style={{ textAlign: "center", padding: "40px" }}>
                       No users found
                     </td>
                   </tr>
                 ) : (
                   users.map((user) => (
-                    <tr
-                      key={user.id}
-                      style={{ borderBottom: "1px solid #eee" }}
-                    >
-                      <td style={tableCellStyle}>{user.full_name}</td>
-                      <td style={tableCellStyle}>{user.email}</td>
-                      <td style={tableCellStyle}>
+                    <tr key={user.id} style={styles.tableRow}>
+                      <td style={styles.tableCell}>{user.full_name}</td>
+                      <td style={styles.tableCell}>{user.email}</td>
+                      <td style={styles.tableCell}>
                         <span
                           style={{
-                            padding: "4px 8px",
-                            borderRadius: "12px",
-                            fontSize: "12px",
-                            background:
-                              user.role === "admin" ? "#e3f2fd" : "#f5f5f5",
-                            color: user.role === "admin" ? "#1976d2" : "#666",
+                            ...styles.badge,
+                            background: user.role === "admin" ? "#eaf5f0" : "#f5f5f5",
+                            color: user.role === "admin" ? "#153C30" : "#666",
                           }}
                         >
                           {user.role}
                         </span>
                       </td>
-                      <td style={tableCellStyle}>
+                      <td style={styles.tableCell}>
                         <span
                           style={{
-                            padding: "4px 8px",
-                            borderRadius: "12px",
-                            fontSize: "12px",
-                            background: user.is_active ? "#e8f5e9" : "#ffebee",
-                            color: user.is_active ? "#2e7d32" : "#c62828",
+                            ...styles.badge,
+                            background: user.is_active ? "#d8f3dc" : "#ffe3e3",
+                            color: user.is_active ? "#1b4332" : "#c1121f",
                           }}
                         >
                           {user.is_active ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td style={tableCellStyle}>
+                      <td style={styles.tableCell}>
                         {new Date(user.created_at).toLocaleDateString()}
                       </td>
-                      <td style={tableCellStyle}>
-                        <button
-                          onClick={() => openEditModal(user)}
-                          style={{
-                            padding: "5px 10px",
-                            marginRight: "5px",
-                            background: "#2196F3",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                          }}
-                        >
-                          ️ Edit
-                        </button>
-                        <button
-                          onClick={() => openDeleteModal(user)}
-                          style={{
-                            padding: "5px 10px",
-                            background: "#f44336",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                          }}
-                        >
-                          Delete
-                        </button>
+                      <td style={styles.tableCell}>
+                        <button style={styles.editButton}>✏️ Edit</button>
+                        <button style={styles.deleteButton}>🗑️ Delete</button>
                       </td>
                     </tr>
                   ))
@@ -294,247 +175,94 @@ export default function AdminUsers() {
               </tbody>
             </table>
           </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "10px",
-                marginTop: "20px",
-              }}
-            >
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                style={{
-                  padding: "8px 15px",
-                  background: currentPage === 1 ? "#ccc" : "#2196F3",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                }}
-              >
-                ← Previous
-              </button>
-
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
-                style={{
-                  padding: "8px 15px",
-                  background: currentPage === totalPages ? "#ccc" : "#2196F3",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor:
-                    currentPage === totalPages ? "not-allowed" : "pointer",
-                }}
-              >
-                Next →
-              </button>
-            </div>
-          )}
         </>
-      )}
-
-      {/* Edit Modal */}
-      {showEditModal && editingUser && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
-            <h2>Edit User</h2>
-            <form onSubmit={handleEditUser}>
-              <div style={{ marginBottom: "15px" }}>
-                <label style={{ display: "block", marginBottom: "5px" }}>
-                  Name: {editingUser.full_name}
-                </label>
-              </div>
-
-              <div style={{ marginBottom: "15px" }}>
-                <label style={{ display: "block", marginBottom: "5px" }}>
-                  Email: {editingUser.email}
-                </label>
-              </div>
-
-              <div style={{ marginBottom: "15px" }}>
-                <label style={{ display: "block", marginBottom: "5px" }}>
-                  Role:
-                </label>
-                <select
-                  value={editingUser.role}
-                  onChange={(e) =>
-                    setEditingUser({
-                      ...editingUser,
-                      role: e.target.value,
-                    })
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                  }}
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
-              <div style={{ marginBottom: "15px" }}>
-                <label
-                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={editingUser.is_active}
-                    onChange={(e) =>
-                      setEditingUser({
-                        ...editingUser,
-                        is_active: e.target.checked,
-                      })
-                    }
-                  />
-                  Active
-                </label>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  justifyContent: "flex-end",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingUser(null);
-                  }}
-                  style={{
-                    padding: "10px 20px",
-                    background: "#ccc",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  style={{
-                    padding: "10px 20px",
-                    background: "#4CAF50",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && userToDelete && (
-        <div style={modalOverlayStyle}>
-          <div style={modalContentStyle}>
-            <h2>Delete User</h2>
-            <p>
-              Are you sure you want to delete user{" "}
-              <strong>{userToDelete.full_name}</strong>? This action cannot be
-              undone.
-            </p>
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                justifyContent: "flex-end",
-                marginTop: "20px",
-              }}
-            >
-              <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setUserToDelete(null);
-                }}
-                style={{
-                  padding: "10px 20px",
-                  background: "#ccc",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteUser}
-                style={{
-                  padding: "10px 20px",
-                  background: "#f44336",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </AdminLayout>
   );
 }
 
-// Styles
-const tableHeaderStyle = {
-  padding: "12px",
-  textAlign: "left",
-  borderBottom: "2px solid #ddd",
-  fontWeight: "600",
-};
-
-const tableCellStyle = {
-  padding: "12px",
-  textAlign: "left",
-};
-
-const modalOverlayStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  background: "rgba(0,0,0,0.5)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1000,
-};
-
-const modalContentStyle = {
-  background: "white",
-  padding: "30px",
-  borderRadius: "8px",
-  maxWidth: "500px",
-  width: "90%",
-  maxHeight: "90vh",
-  overflow: "auto",
+// Inline Styles
+const styles = {
+  filterContainer: {
+    display: "flex",
+    gap: "15px",
+    marginBottom: "20px",
+    flexWrap: "wrap",
+    alignItems: "center",
+  },
+  searchInput: {
+    flex: "0 1 860px",
+    padding: "10px 14px",
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+    fontSize: "14px",
+  },
+  refreshButton: {
+    padding: "10px 20px",
+    background: "#153C30",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "500",
+    transition: "background 0.2s",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    background: "white",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+    borderRadius: "10px",
+    overflow: "hidden",
+  },
+  tableHeaderRow: {
+    background: "#153C30",
+    color: "#fff",
+  },
+  tableHeader: {
+    padding: "12px",
+    textAlign: "left",
+    fontWeight: "600",
+    fontSize: "14px",
+  },
+  tableRow: {
+    borderBottom: "1px solid #f0f0f0",
+  },
+  tableCell: {
+    padding: "12px",
+    fontSize: "14px",
+    color: "#333",
+  },
+  badge: {
+    padding: "5px 10px",
+    borderRadius: "12px",
+    fontSize: "12px",
+    fontWeight: "500",
+  },
+  editButton: {
+    padding: "6px 12px",
+    background: "#e0f2e9",
+    color: "#153C30",
+    border: "1px solid #c8e6c9",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "13px",
+    marginRight: "6px",
+  },
+  deleteButton: {
+    padding: "6px 12px",
+    background: "#ffebee",
+    color: "#c62828",
+    border: "1px solid #ffcdd2",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "13px",
+  },
+  errorBox: {
+    padding: "15px",
+    background: "#fee",
+    color: "#c33",
+    borderRadius: "6px",
+    marginBottom: "20px",
+  },
 };

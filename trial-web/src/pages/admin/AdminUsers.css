@@ -1,0 +1,43 @@
+.modern-dropdown {
+  width: 180px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(21, 60, 48, 0.3);
+  background: rgba(255, 255, 255, 0.85);
+  color: #153c30;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%23153C30' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  transition: all 0.2s ease-in-out;
+}
+
+.modern-dropdown:hover,
+.modern-dropdown:focus {
+  outline: none;
+  border-color: #153c30;
+  box-shadow: 0 0 5px rgba(21, 60, 48, 0.3);
+}
+
+/* Styling options saat dropdown dibuka */
+.modern-dropdown option {
+  background: white;
+  color: #153c30;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* Saat hover di opsi */
+.modern-dropdown option:hover,
+.modern-dropdown option:focus,
+.modern-dropdown option:checked {
+  background: #153c30 !important;
+  color: white !important;
+  font-weight: 600;
+}
