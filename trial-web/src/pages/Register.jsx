@@ -128,11 +128,11 @@ export default function Register() {
           </div>
           <h1 style={styles.brandName}>TutorAI</h1>
           <p style={styles.brandTagline}>
-            Join thousands of students learning smarter with AI-powered education
+            Advanced AI-powered Master of Agriculture learning platform
           </p>
         </div>
 
-        <div style={styles.benefitsList}>
+        {/* <div style={styles.benefitsList}>
           <div style={styles.benefitItem}>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M16 6L7.5 14.5L4 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -157,7 +157,7 @@ export default function Register() {
             </svg>
             <span>Multi-Language Support (ID & EN)</span>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Right Panel */}
@@ -165,9 +165,9 @@ export default function Register() {
         <div style={styles.formWrapper}>
           <div style={styles.header}>
             <h2 style={styles.title}>Create your account</h2>
-            <p style={styles.subtitle}>
+            {/* <p style={styles.subtitle}>
               Start your personalized learning journey today
-            </p>
+            </p> */}
           </div>
 
           <form onSubmit={handleSubmit} style={styles.formArea}>
@@ -335,12 +335,12 @@ export default function Register() {
           </div>
         </div>
 
-        <div style={styles.legal}>
+        {/* <div style={styles.legal}>
           By creating an account, you agree to our{" "}
           <a href="#" style={styles.legalLink}>Terms of Service</a>
           {" "}and{" "}
           <a href="#" style={styles.legalLink}>Privacy Policy</a>
-        </div>
+        </div> */}
       </div>
     </div>
   );

@@ -69,14 +69,35 @@ function formatContext(chunks) {
 }
 
 /**
- * Build prompt for Gemini with RAG context
+ * Format chat history for the prompt
+ * @param {Array} chatHistory - Previous chat messages
+ * @returns {string} - Formatted chat history
+ */
+function formatChatHistory(chatHistory) {
+  if (!chatHistory || chatHistory.length === 0) {
+    return "";
+  }
+
+  const formattedHistory = chatHistory
+    .map((chat) => {
+      return `User: ${chat.message}\nAssistant: ${chat.reply}`;
+    })
+    .join("\n\n");
+
+  return `\nRIWAYAT PERCAKAPAN SEBELUMNYA:\n${formattedHistory}\n`;
+}
+
+/**
+ * Build prompt for Gemini with RAG context and chat history
  * @param {string} userMessage - User's question
  * @param {Array} context - Retrieved context chunks
  * @param {string} language - Detected language
+ * @param {Array} chatHistory - Previous chat messages (optional)
  * @returns {string} - Complete prompt
  */
-function buildPrompt(userMessage, context, language) {
+function buildPrompt(userMessage, context, language, chatHistory = []) {
   const contextText = formatContext(context);
+  const historyText = formatChatHistory(chatHistory);
 
   const languageInstructions = {
     id: "Jawab dalam Bahasa Indonesia yang jelas dan mudah dipahami.",
@@ -90,27 +111,33 @@ function buildPrompt(userMessage, context, language) {
 
 KONTEKS DARI DOKUMEN:
 ${contextText}
-
-PERTANYAAN PENGGUNA:
+${historyText}
+PERTANYAAN PENGGUNA SAAT INI:
 ${userMessage}
 
 INSTRUKSI:
-1. Gunakan informasi dari konteks di atas jika relevan
-2. Jika konteks tidak cukup, berikan jawaban umum berdasarkan pengetahuanmu
-3. Berikan penjelasan yang jelas, terstruktur, dan mudah dipahami
-4. Jika perlu, berikan contoh untuk memperjelas
-5. Jika tidak tahu jawabannya, jujur katakan dan berikan saran alternatif
+1. Gunakan informasi dari konteks dokumen dan riwayat percakapan jika relevan
+2. Jika pengguna merujuk ke percakapan sebelumnya, gunakan riwayat untuk memahami konteks
+3. Jika konteks tidak cukup, berikan jawaban umum berdasarkan pengetahuanmu
+4. Berikan penjelasan yang jelas, terstruktur, dan mudah dipahami
+5. Jika perlu, berikan contoh untuk memperjelas
+6. Jika tidak tahu jawabannya, jujur katakan dan berikan saran alternatif
 
 JAWABAN:`;
 }
 
 /**
- * Generate AI response using Gemini with RAG
+ * Generate AI response using Gemini with RAG and chat history
  * @param {string} userMessage - User's message
  * @param {Array} context - Retrieved context chunks (optional)
+ * @param {Array} chatHistory - Previous chat messages (optional)
  * @returns {Promise<Object>} - Response object with reply and sources
  */
-export async function generateResponse(userMessage, context = null) {
+export async function generateResponse(
+  userMessage,
+  context = null,
+  chatHistory = []
+) {
   try {
     // Detect language
     const language = detectLanguage(userMessage);
@@ -120,8 +147,8 @@ export async function generateResponse(userMessage, context = null) {
       context = await retrieveContext(userMessage, 5);
     }
 
-    // Build prompt
-    const prompt = buildPrompt(userMessage, context, language);
+    // Build prompt with chat history
+    const prompt = buildPrompt(userMessage, context, language, chatHistory);
 
     // Generate response with Gemini
     const result = await model.generateContent(prompt);
@@ -141,6 +168,7 @@ export async function generateResponse(userMessage, context = null) {
       language,
       sources,
       context_used: context.length > 0,
+      history_used: chatHistory.length > 0,
     };
   } catch (error) {
     console.error("Error generating response:", error);

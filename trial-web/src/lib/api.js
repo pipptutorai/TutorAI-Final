@@ -49,12 +49,24 @@ export const authAPI = {
 
 // Chat API
 export const chatAPI = {
-  sendMessage: (message) => api.post("/chat", { message }),
+  sendMessage: (message, sessionId = null) => {
+    const payload = { message };
+    // Only include session_id if it's not null
+    if (sessionId !== null && sessionId !== undefined) {
+      payload.session_id = sessionId;
+    }
+    return api.post("/chat", payload);
+  },
   getHistory: (page = 1, limit = 20) =>
     api.get("/chat/history", { params: { page, limit } }),
   getChat: (id) => api.get(`/chat/history/${id}`),
   deleteChat: (id) => api.delete(`/chat/history/${id}`),
   deleteAllChats: () => api.delete("/chat/history"),
+  
+  // Session management
+  getSessions: () => api.get("/chat/sessions"),
+  getSession: (id) => api.get(`/chat/sessions/${id}`),
+  deleteSession: (id) => api.delete(`/chat/sessions/${id}`),
 };
 
 // Admin - Users API

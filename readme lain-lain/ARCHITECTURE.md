@@ -1,8 +1,8 @@
-# 🏗️ System Architecture - TutorAI
+# ️ System Architecture - TutorAI
 
 Dokumentasi arsitektur sistem TutorAI dengan penjelasan detail setiap komponen.
 
-## 📊 High-Level Architecture
+## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -52,7 +52,7 @@ Dokumentasi arsitektur sistem TutorAI dengan penjelasan detail setiap komponen.
 └──────────────────────────┘
 ```
 
-## 🔄 Data Flow
+## Data Flow
 
 ### 1. User Registration Flow
 
@@ -167,7 +167,7 @@ User clicks mic → Web Speech API starts listening
                   User can edit or send directly
 ```
 
-## 🗃️ Database Schema Details
+## ️ Database Schema Details
 
 ### profiles Table
 
@@ -262,7 +262,7 @@ CREATE TABLE chat_history (
 ]
 ```
 
-## 🔐 Security Architecture
+## Security Architecture
 
 ### Authentication & Authorization
 
@@ -320,7 +320,7 @@ if (!email || !password) {
 4. Sanitize filename
 5. Store in isolated directory
 
-## 🚀 Performance Optimizations
+## Performance Optimizations
 
 ### Database Indexing
 
@@ -364,7 +364,7 @@ CREATE INDEX idx_chat_history_created_at ON chat_history(created_at DESC);
 }
 ```
 
-## 🧩 Component Architecture
+## Component Architecture
 
 ### Frontend Components
 
@@ -418,7 +418,7 @@ indexer/
 └── requirements.txt
 ```
 
-## 🔄 API Integration Points
+## API Integration Points
 
 ### Backend ↔ Indexer Communication
 
@@ -472,7 +472,7 @@ const response = await model.generateContent({
 });
 ```
 
-## 📊 Monitoring & Logging
+## Monitoring & Logging
 
 ### Current Logging
 
@@ -498,7 +498,7 @@ print(f"Error: {str(e)}")
 - [ ] Analytics (Google Analytics)
 - [ ] Log aggregation (ELK Stack)
 
-## 🔮 Scalability Considerations
+## Scalability Considerations
 
 ### Current Architecture Limitations
 
@@ -537,7 +537,7 @@ Future:
 - Notification Service
 ```
 
-## 📚 Technology Decisions
+## Technology Decisions
 
 ### Why PostgreSQL + pgvector?
 
@@ -583,7 +583,7 @@ Future:
 - Babylon.js
 - PlayCanvas
 
-## 🛣️ Future Architecture Plans
+## ️ Future Architecture Plans
 
 1. **Microservices**: Split monolith into services
 2. **Message Queue**: RabbitMQ/Redis for async processing

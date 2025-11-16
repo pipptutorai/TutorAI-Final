@@ -146,11 +146,11 @@ export default function Login() {
           </div>
           <h1 style={styles.brandName}>TutorAI</h1>
           <p style={styles.brandTagline}>
-            Advanced AI-powered learning platform designed for the next generation of learners
+            Advanced AI-powered Master of Agriculture learning platform
           </p>
         </div>
 
-        <div style={styles.featuresList}>
+        {/* <div style={styles.featuresList}>
           <div style={styles.featureItem}>
             <div style={styles.featureIcon}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -190,9 +190,9 @@ export default function Login() {
               <div style={styles.featureDesc}>Access curated educational materials</div>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        <div style={styles.testimonial}>
+        {/* <div style={styles.testimonial}>
           <div style={styles.quoteIcon}>"</div>
           <p style={styles.quote}>
             TutorAI transformed the way I learn. The AI responses are incredibly
@@ -205,7 +205,7 @@ export default function Login() {
               <div style={styles.authorTitle}>Computer Science Student</div>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Right Panel */}
@@ -329,14 +329,14 @@ export default function Login() {
           </div>
         </div>
 
-        <div style={styles.bottomNote}>
+        {/* <div style={styles.bottomNote}>
           <p style={styles.noteText}>
             By signing in, you agree to our{" "}
             <a href="#" style={styles.noteLink}>Terms of Service</a>
             {" "}and{" "}
             <a href="#" style={styles.noteLink}>Privacy Policy</a>
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );

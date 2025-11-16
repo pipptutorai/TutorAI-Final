@@ -102,7 +102,6 @@ export default function AdminUsers() {
           ]}
         />
 
-
         <button style={styles.refreshButton} onClick={loadUsers}>
           Refresh
         </button>
@@ -131,7 +130,10 @@ export default function AdminUsers() {
               <tbody>
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: "center", padding: "40px" }}>
+                    <td
+                      colSpan="6"
+                      style={{ textAlign: "center", padding: "40px" }}
+                    >
                       No users found
                     </td>
                   </tr>
@@ -144,7 +146,8 @@ export default function AdminUsers() {
                         <span
                           style={{
                             ...styles.badge,
-                            background: user.role === "admin" ? "#eaf5f0" : "#f5f5f5",
+                            background:
+                              user.role === "admin" ? "#eaf5f0" : "#f5f5f5",
                             color: user.role === "admin" ? "#153C30" : "#666",
                           }}
                         >
@@ -166,8 +169,8 @@ export default function AdminUsers() {
                         {new Date(user.created_at).toLocaleDateString()}
                       </td>
                       <td style={styles.tableCell}>
-                        <button style={styles.editButton}>✏️ Edit</button>
-                        <button style={styles.deleteButton}>🗑️ Delete</button>
+                        <button style={styles.editButton}>️ Edit</button>
+                        <button style={styles.deleteButton}>️ Delete</button>
                       </td>
                     </tr>
                   ))

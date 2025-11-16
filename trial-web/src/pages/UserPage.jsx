@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { chatAPI } from "../lib/api";
 import { getUser, logout } from "../utils/auth";
 import Avatar3D from "../components/Avatar3D";
+import MarkdownMessage from "../components/MarkdownMessage";
 
 export default function UserPage() {
   const navigate = useNavigate();
@@ -15,18 +16,19 @@ export default function UserPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [chatHistory, setChatHistory] = useState([]);
-  const [currentChatId, setCurrentChatId] = useState(null);
+  const [currentSessionId, setCurrentSessionId] = useState(null); // Changed from currentChatId
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  
+  const [expandedSources, setExpandedSources] = useState({}); // Track which message sources are expanded
+
   // Speech states
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [conversationMode, setConversationMode] = useState(false);
-  
+
   // User typing state untuk avatar
   const [isUserTyping, setIsUserTyping] = useState(false);
-  
+
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -49,13 +51,16 @@ export default function UserPage() {
 
   useEffect(() => {
     initializeSpeechRecognition();
-    
+
     const handleClickOutside = (event) => {
-      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+      if (
+        userDropdownRef.current &&
+        !userDropdownRef.current.contains(event.target)
+      ) {
         setShowUserDropdown(false);
       }
     };
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -70,8 +75,9 @@ export default function UserPage() {
   };
 
   const initializeSpeechRecognition = () => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+      const SpeechRecognition =
+        window.webkitSpeechRecognition || window.SpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
@@ -80,17 +86,17 @@ export default function UserPage() {
         const transcript = event.results[0][0].transcript;
         setMessage(transcript);
         setIsListening(false);
-        
+
         if (conversationMode) {
           handleSendMessage(null, transcript);
         }
       };
 
       recognitionRef.current.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
+        console.error("Speech recognition error:", event.error);
         setIsListening(false);
-        if (event.error !== 'no-speech') {
-          toast.error('Voice recognition failed. Please try again.');
+        if (event.error !== "no-speech") {
+          toast.error("Voice recognition failed. Please try again.");
         }
       };
 
@@ -101,27 +107,28 @@ export default function UserPage() {
         }
       };
     } else {
-      console.warn('Speech recognition not supported');
+      console.warn("Speech recognition not supported");
     }
   };
 
   const detectLanguage = (text) => {
-    const indonesianPattern = /[a-z]*(nya|kan|lah|kah|an|yang|dengan|untuk|dari|ke|di|pada)\b/i;
-    return indonesianPattern.test(text) ? 'id-ID' : 'en-US';
+    const indonesianPattern =
+      /[a-z]*(nya|kan|lah|kah|an|yang|dengan|untuk|dari|ke|di|pada)\b/i;
+    return indonesianPattern.test(text) ? "id-ID" : "en-US";
   };
 
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
       try {
         const lastChat = chats[chats.length - 1];
-        const lang = lastChat ? detectLanguage(lastChat.content) : 'id-ID';
+        const lang = lastChat ? detectLanguage(lastChat.content) : "id-ID";
         recognitionRef.current.lang = lang;
-        
+
         recognitionRef.current.start();
         setIsListening(true);
       } catch (error) {
-        console.error('Failed to start listening:', error);
-        toast.error('Failed to start voice input');
+        console.error("Failed to start listening:", error);
+        toast.error("Failed to start voice input");
       }
     }
   };
@@ -134,40 +141,40 @@ export default function UserPage() {
   };
 
   const speak = (text) => {
-    if ('speechSynthesis' in window && (voiceEnabled || conversationMode)) {
+    if ("speechSynthesis" in window && (voiceEnabled || conversationMode)) {
       window.speechSynthesis.cancel();
-      
+
       const utterance = new SpeechSynthesisUtterance(text);
       const lang = detectLanguage(text);
       utterance.lang = lang;
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
-      
+
       utterance.onstart = () => {
         setIsSpeaking(true);
         if (conversationMode) {
           stopListening();
         }
       };
-      
+
       utterance.onend = () => {
         setIsSpeaking(false);
         if (conversationMode) {
           setTimeout(() => startListening(), 500);
         }
       };
-      
+
       utterance.onerror = () => {
         setIsSpeaking(false);
-        toast.error('Text-to-speech failed');
+        toast.error("Text-to-speech failed");
       };
-      
+
       window.speechSynthesis.speak(utterance);
     }
   };
 
   const stopSpeaking = () => {
-    if ('speechSynthesis' in window) {
+    if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
     }
@@ -176,30 +183,30 @@ export default function UserPage() {
   const toggleConversationMode = () => {
     const newMode = !conversationMode;
     setConversationMode(newMode);
-    
+
     if (newMode) {
       setVoiceEnabled(true);
-      toast.success('Conversation mode enabled - speak naturally!');
+      toast.success("Conversation mode enabled - speak naturally!");
       setTimeout(() => startListening(), 500);
     } else {
       stopListening();
       stopSpeaking();
-      toast.success('Conversation mode disabled');
+      toast.success("Conversation mode disabled");
     }
   };
 
   // Handle user typing untuk animasi avatar
   const handleInputChange = (e) => {
     setMessage(e.target.value);
-    
+
     // Set user is typing
     setIsUserTyping(true);
-    
+
     // Clear previous timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    
+
     // Set new timeout to stop typing indicator
     typingTimeoutRef.current = setTimeout(() => {
       setIsUserTyping(false);
@@ -208,29 +215,20 @@ export default function UserPage() {
 
   const loadChatHistory = async () => {
     try {
-      const response = await chatAPI.getHistory(1, 50);
-      console.log("Chat history response:", response);
-      
-      const historyData = response.data?.data?.chats || 
-                         response.data?.chats || 
-                         response.chats || 
-                         [];
-      
-      const grouped = historyData.reduce((acc, chat) => {
-        const dateKey = new Date(chat.created_at || chat.timestamp).toDateString();
-        if (!acc[dateKey]) {
-          acc[dateKey] = {
-            id: chat.id || chat._id,
-            title: (chat.message || chat.content || '').substring(0, 50) + '...',
-            timestamp: new Date(chat.created_at || chat.timestamp),
-            messages: []
-          };
-        }
-        acc[dateKey].messages.push(chat);
-        return acc;
-      }, {});
-      
-      setChatHistory(Object.values(grouped));
+      const response = await chatAPI.getSessions();
+      console.log("Chat sessions response:", response);
+
+      const sessions =
+        response.data?.data?.sessions || response.data?.sessions || [];
+
+      const formattedHistory = sessions.map((session) => ({
+        id: session.id,
+        title: session.title || "Untitled conversation",
+        timestamp: new Date(session.last_message_at || session.created_at),
+        message_count: session.message_count || 0,
+      }));
+
+      setChatHistory(formattedHistory);
     } catch (error) {
       console.error("Failed to load chat history:", error);
     }
@@ -238,13 +236,13 @@ export default function UserPage() {
 
   const handleSendMessage = async (e, textOverride = null) => {
     if (e) e.preventDefault();
-    
+
     const textToSend = textOverride || message.trim();
     if (!textToSend) return;
 
     setMessage("");
     setIsUserTyping(false); // Stop typing indicator
-    
+
     const newUserChat = {
       type: "user",
       content: textToSend,
@@ -256,45 +254,61 @@ export default function UserPage() {
     setIsTyping(true);
 
     try {
-      console.log("Sending message:", textToSend);
-      
-      const response = await chatAPI.sendMessage(textToSend);
+      console.log(
+        "Sending message:",
+        textToSend,
+        "Session ID:",
+        currentSessionId
+      );
+
+      // Send message with session_id for conversation context
+      const response = await chatAPI.sendMessage(textToSend, currentSessionId);
       console.log("Chat API response:", response);
-      
+
       const data = response.data?.data || response.data || response;
-      
+
       if (!data) {
         throw new Error("No response data received");
+      }
+
+      // Update current session ID if new session was created
+      if (data.session_id && !currentSessionId) {
+        setCurrentSessionId(data.session_id);
       }
 
       setTimeout(() => {
         setIsTyping(false);
         const newAiChat = {
           type: "ai",
-          content: data.reply || data.message || data.content || "I'm sorry, I couldn't process that request.",
+          content:
+            data.reply ||
+            data.message ||
+            data.content ||
+            "I'm sorry, I couldn't process that request.",
           sources: data.sources || [],
           timestamp: new Date(data.created_at || new Date()),
+          context_used: data.context_used,
+          history_used: data.history_used, // Show if conversation context was used
         };
-        
+
         setChats((prev) => [...prev, newAiChat]);
-        
+
         if (voiceEnabled || conversationMode) {
           speak(newAiChat.content);
         }
-        
+
         loadChatHistory();
       }, 500);
-      
     } catch (error) {
       console.error("Chat error details:", error);
       setIsTyping(false);
-      
+
       let errorMessage = "Failed to process chat";
-      
+
       if (error.response) {
         console.error("Response status:", error.response.status);
         console.error("Response data:", error.response.data);
-        
+
         if (error.response.status === 401) {
           errorMessage = "Session expired. Please login again.";
           setTimeout(() => {
@@ -306,7 +320,10 @@ export default function UserPage() {
         } else if (error.response.status >= 500) {
           errorMessage = "Server error. Please try again later.";
         } else {
-          errorMessage = error.response.data?.message || error.response.data?.error || errorMessage;
+          errorMessage =
+            error.response.data?.message ||
+            error.response.data?.error ||
+            errorMessage;
         }
       } else if (error.request) {
         console.error("No response received:", error.request);
@@ -314,17 +331,17 @@ export default function UserPage() {
       } else {
         errorMessage = error.message || errorMessage;
       }
-      
+
       toast.error(errorMessage);
-      
+
       const errorChat = {
         type: "ai",
-        content: "I apologize, but I'm having trouble processing your request right now. Please try again in a moment.",
+        content:
+          "I apologize, but I'm having trouble processing your request right now. Please try again in a moment.",
         timestamp: new Date(),
-        isError: true
+        isError: true,
       };
       setChats((prev) => [...prev, errorChat]);
-      
     } finally {
       setLoading(false);
       if (!conversationMode) {
@@ -335,40 +352,80 @@ export default function UserPage() {
 
   const startNewChat = () => {
     setChats([]);
-    setCurrentChatId(null);
+    setCurrentSessionId(null); // Reset session ID for new conversation
     setIsUserTyping(false);
+    setExpandedSources({}); // Reset expanded sources
     if (conversationMode) {
       toggleConversationMode();
     }
     toast.success("New chat started");
   };
 
-  const loadChat = async (chatId) => {
+  const loadChat = async (sessionId) => {
     try {
-      setCurrentChatId(chatId);
-      const historyItem = chatHistory.find(h => h.id === chatId);
-      
-      if (historyItem && historyItem.messages) {
-        const formattedChats = historyItem.messages.flatMap(msg => [
+      setCurrentSessionId(sessionId);
+
+      // Load session with all messages
+      const response = await chatAPI.getSession(sessionId);
+      console.log("Session response:", response);
+
+      const sessionData = response.data?.data || response.data;
+
+      if (sessionData && sessionData.messages) {
+        const formattedChats = sessionData.messages.flatMap((msg) => [
           {
             type: "user",
-            content: msg.message || msg.content,
-            timestamp: new Date(msg.created_at || msg.timestamp),
+            content: msg.message,
+            timestamp: new Date(msg.created_at),
           },
           {
             type: "ai",
-            content: msg.reply || msg.response || msg.content,
+            content: msg.reply,
             sources: msg.sources || [],
-            timestamp: new Date(msg.created_at || msg.timestamp),
-          }
+            timestamp: new Date(msg.created_at),
+          },
         ]);
         setChats(formattedChats);
         setIsSidebarOpen(false);
+        toast.success("Conversation loaded - you can continue chatting!");
       }
     } catch (error) {
-      console.error("Failed to load chat:", error);
-      toast.error("Failed to load chat history");
+      console.error("Failed to load session:", error);
+      toast.error("Failed to load conversation");
     }
+  };
+
+  const deleteChat = async (sessionId, e) => {
+    e.stopPropagation(); // Prevent triggering loadChat
+
+    if (!confirm("Are you sure you want to delete this conversation?")) {
+      return;
+    }
+
+    try {
+      await chatAPI.deleteSession(sessionId);
+
+      // If deleting current session, clear chat
+      if (currentSessionId === sessionId) {
+        setChats([]);
+        setCurrentSessionId(null);
+        setExpandedSources({}); // Reset expanded sources
+      }
+
+      // Reload history
+      await loadChatHistory();
+      toast.success("Conversation deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete session:", error);
+      toast.error("Failed to delete conversation");
+    }
+  };
+
+  const toggleSources = (index) => {
+    setExpandedSources((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
   };
 
   const handleLogout = () => {
@@ -380,17 +437,17 @@ export default function UserPage() {
   const groupHistoryByDate = (history) => {
     const groups = { Today: [], Yesterday: [], "Last 7 Days": [], Older: [] };
     const now = new Date();
-    
-    history.forEach(chat => {
+
+    history.forEach((chat) => {
       const diff = now - chat.timestamp;
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      
+
       if (days === 0) groups.Today.push(chat);
       else if (days === 1) groups.Yesterday.push(chat);
       else if (days <= 7) groups["Last 7 Days"].push(chat);
       else groups.Older.push(chat);
     });
-    
+
     return groups;
   };
 
@@ -404,60 +461,105 @@ export default function UserPage() {
         <div style={styles.floatingCircle2}></div>
         <div style={styles.floatingCircle3}></div>
         <div style={styles.gradientOverlay}></div>
-        
+
         {/* Avatar Background yang Besar - BISA DIINTERAKSI & OPACITY TINGGI */}
         <div style={styles.backgroundAvatarContainer}>
-          <Avatar3D 
-            isSpeaking={isSpeaking || isTyping} 
+          <Avatar3D
+            isSpeaking={isSpeaking || isTyping}
             isUserTyping={isUserTyping}
-            background={true} 
+            background={true}
           />
         </div>
       </div>
 
       {/* Sidebar */}
-      <div style={{
-        ...styles.sidebar,
-        transform: isSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
-      }}>
+      <div
+        style={{
+          ...styles.sidebar,
+          transform: isSidebarOpen ? "translateX(0)" : "translateX(-100%)",
+        }}
+      >
         <div style={styles.sidebarHeader}>
           <button onClick={startNewChat} style={styles.newChatButton}>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path
+                d="M10 4V16M4 10H16"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
             New Chat
           </button>
         </div>
 
         <div style={styles.historyList}>
-          {Object.entries(groupedHistory).map(([period, chats]) => (
-            chats.length > 0 && (
-              <div key={period} style={styles.historyGroup}>
-                <div style={styles.historyGroupLabel}>{period}</div>
-                {chats.map(chat => (
-                  <button
-                    key={chat.id}
-                    onClick={() => loadChat(chat.id)}
-                    style={{
-                      ...styles.historyItem,
-                      background: currentChatId === chat.id ? 'rgba(255,255,255,0.1)' : 'transparent',
-                    }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <path d="M14 11C14 11.55 13.55 12 13 12H5L2 15V4C2 3.45 2.45 3 3 3H13C13.55 3 14 3.45 14 4V11Z" 
-                        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                    <span style={styles.historyItemText}>{chat.title}</span>
-                  </button>
-                ))}
-              </div>
-            )
-          ))}
+          {Object.entries(groupedHistory).map(
+            ([period, chats]) =>
+              chats.length > 0 && (
+                <div key={period} style={styles.historyGroup}>
+                  <div style={styles.historyGroupLabel}>{period}</div>
+                  {chats.map((chat) => (
+                    <div
+                      key={chat.id}
+                      className="history-item-wrapper"
+                      style={{
+                        ...styles.historyItemWrapper,
+                        background:
+                          currentSessionId === chat.id
+                            ? "rgba(255,255,255,0.1)"
+                            : "transparent",
+                      }}
+                    >
+                      <button
+                        onClick={() => loadChat(chat.id)}
+                        style={styles.historyItemButton}
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                        >
+                          <path
+                            d="M14 11C14 11.55 13.55 12 13 12H5L2 15V4C2 3.45 2.45 3 3 3H13C13.55 3 14 3.45 14 4V11Z"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <span style={styles.historyItemText}>{chat.title}</span>
+                      </button>
+                      <button
+                        onClick={(e) => deleteChat(chat.id, e)}
+                        className="delete-button"
+                        style={styles.deleteButton}
+                        title="Delete conversation"
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 14 14"
+                          fill="none"
+                        >
+                          <path
+                            d="M3 4H11M5 4V3C5 2.45 5.45 2 6 2H8C8.55 2 9 2.45 9 3V4M10 4V11C10 11.55 9.55 12 9 12H5C4.45 12 4 11.55 4 11V4"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )
+          )}
         </div>
 
         <div style={styles.sidebarFooter}>
           <div style={styles.userInfo} ref={userDropdownRef}>
-            <button 
+            <button
               onClick={() => setShowUserDropdown(!showUserDropdown)}
               style={styles.userButton}
             >
@@ -468,20 +570,37 @@ export default function UserPage() {
                 <div style={styles.userName}>{user?.name}</div>
                 <div style={styles.userEmail}>{user?.email}</div>
               </div>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{
-                transform: showUserDropdown ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.2s'
-              }}>
-                <path d="M4 6L8 10L12 6" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                style={{
+                  transform: showUserDropdown
+                    ? "rotate(180deg)"
+                    : "rotate(0deg)",
+                  transition: "transform 0.2s",
+                }}
+              >
+                <path
+                  d="M4 6L8 10L12 6"
+                  stroke="white"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
               </svg>
             </button>
-            
+
             {showUserDropdown && (
               <div style={styles.userDropdown}>
                 <button onClick={handleLogout} style={styles.logoutButton}>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M6 14H3C2.45 14 2 13.55 2 13V3C2 2.45 2.45 2 3 2H6M11 11L14 8M14 8L11 5M14 8H6" 
-                      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path
+                      d="M6 14H3C2.45 14 2 13.55 2 13V3C2 2.45 2.45 2 3 2H6M11 11L14 8M14 8L11 5M14 8H6"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
                   </svg>
                   Logout
                 </button>
@@ -495,24 +614,33 @@ export default function UserPage() {
       <div style={styles.mainContent}>
         {/* Header */}
         <div style={styles.header}>
-          <button 
+          <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             style={styles.menuButton}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path
+                d="M4 6H20M4 12H20M4 18H20"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
-          
+
           <div style={styles.headerTitle}>
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
               <circle cx="14" cy="14" r="13" fill="url(#gradient)" />
-              <path d="M10 10L14 14L18 10M10 14L14 18L18 14" 
-                stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              <path
+                d="M10 10L14 14L18 10M10 14L14 18L18 14"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
               <defs>
                 <linearGradient id="gradient" x1="0" y1="0" x2="28" y2="28">
-                  <stop offset="0%" stopColor="#153C30"/>
-                  <stop offset="100%" stopColor="#2D7A5F"/>
+                  <stop offset="0%" stopColor="#153C30" />
+                  <stop offset="100%" stopColor="#2D7A5F" />
                 </linearGradient>
               </defs>
             </svg>
@@ -524,30 +652,58 @@ export default function UserPage() {
               onClick={toggleConversationMode}
               style={{
                 ...styles.iconButton,
-                background: conversationMode ? 'rgba(21, 60, 48, 0.15)' : 'transparent',
-                border: conversationMode ? '2px solid #153C30' : '1px solid #E5E7EB',
+                background: conversationMode
+                  ? "rgba(21, 60, 48, 0.15)"
+                  : "transparent",
+                border: conversationMode
+                  ? "2px solid #153C30"
+                  : "1px solid #E5E7EB",
               }}
-              title={conversationMode ? "Conversation mode active" : "Enable conversation mode"}
+              title={
+                conversationMode
+                  ? "Conversation mode active"
+                  : "Enable conversation mode"
+              }
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <circle cx="10" cy="10" r="8" stroke={conversationMode ? "#153C30" : "#94A3B8"} strokeWidth="1.5"/>
-                <path d="M7 9L10 12L14 8" stroke={conversationMode ? "#153C30" : "#94A3B8"} strokeWidth="1.5" strokeLinecap="round"/>
+                <circle
+                  cx="10"
+                  cy="10"
+                  r="8"
+                  stroke={conversationMode ? "#153C30" : "#94A3B8"}
+                  strokeWidth="1.5"
+                />
+                <path
+                  d="M7 9L10 12L14 8"
+                  stroke={conversationMode ? "#153C30" : "#94A3B8"}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
               </svg>
             </button>
-            
+
             <button
               onClick={() => setVoiceEnabled(!voiceEnabled)}
               style={{
                 ...styles.iconButton,
-                background: voiceEnabled ? 'rgba(21, 60, 48, 0.1)' : 'transparent',
+                background: voiceEnabled
+                  ? "rgba(21, 60, 48, 0.1)"
+                  : "transparent",
               }}
               title={voiceEnabled ? "Voice enabled" : "Voice disabled"}
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 2C8.34 2 7 3.34 7 5V10C7 11.66 8.34 13 10 13C11.66 13 13 11.66 13 10V5C13 3.34 11.66 2 10 2Z"
-                  stroke={voiceEnabled ? "#153C30" : "#94A3B8"} strokeWidth="1.5"/>
-                <path d="M16 10C16 13.31 13.31 16 10 16C6.69 16 4 13.31 4 10M10 16V18"
-                  stroke={voiceEnabled ? "#153C30" : "#94A3B8"} strokeWidth="1.5" strokeLinecap="round"/>
+                <path
+                  d="M10 2C8.34 2 7 3.34 7 5V10C7 11.66 8.34 13 10 13C11.66 13 13 11.66 13 10V5C13 3.34 11.66 2 10 2Z"
+                  stroke={voiceEnabled ? "#153C30" : "#94A3B8"}
+                  strokeWidth="1.5"
+                />
+                <path
+                  d="M16 10C16 13.31 13.31 16 10 16C6.69 16 4 13.31 4 10M10 16V18"
+                  stroke={voiceEnabled ? "#153C30" : "#94A3B8"}
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
               </svg>
             </button>
           </div>
@@ -559,15 +715,16 @@ export default function UserPage() {
             <div style={styles.emptyState}>
               {/* Avatar kecil di center untuk empty state */}
               <div style={styles.avatarContainer}>
-                <Avatar3D 
-                  isSpeaking={isSpeaking} 
+                <Avatar3D
+                  isSpeaking={isSpeaking}
                   isUserTyping={isUserTyping}
-                  size={140} 
+                  size={140}
                 />
               </div>
               <h2 style={styles.emptyTitle}>Welcome to TutorAI</h2>
               <p style={styles.emptyText}>
-                Your intelligent learning companion. Ask me anything or try conversation mode!
+                Your intelligent learning companion. Ask me anything or try
+                conversation mode!
               </p>
 
               {conversationMode && (
@@ -576,18 +733,24 @@ export default function UserPage() {
                   <span>Conversation mode active - speak now</span>
                 </div>
               )}
-              
+
               {isUserTyping && !conversationMode && (
-                <div style={{
-                  ...styles.conversationBadge,
-                  background: 'rgba(45, 122, 95, 0.1)',
-                  border: '2px solid #2D7A5F',
-                }}>
-                  <div style={{
-                    ...styles.pulseIndicator,
-                    background: '#2D7A5F',
-                  }}></div>
-                  <span style={{ color: '#2D7A5F' }}>Listening to your input...</span>
+                <div
+                  style={{
+                    ...styles.conversationBadge,
+                    background: "rgba(45, 122, 95, 0.1)",
+                    border: "2px solid #2D7A5F",
+                  }}
+                >
+                  <div
+                    style={{
+                      ...styles.pulseIndicator,
+                      background: "#2D7A5F",
+                    }}
+                  ></div>
+                  <span style={{ color: "#2D7A5F" }}>
+                    Listening to your input...
+                  </span>
                 </div>
               )}
             </div>
@@ -596,51 +759,164 @@ export default function UserPage() {
               {chats.map((chat, index) => (
                 <div
                   key={index}
-                  style={chat.type === "user" ? styles.userMessageWrapper : styles.aiMessageWrapper}
+                  style={
+                    chat.type === "user"
+                      ? styles.userMessageWrapper
+                      : styles.aiMessageWrapper
+                  }
                 >
                   {chat.type === "ai" && (
                     <div style={styles.aiAvatar}>
                       {/* Avatar kecil untuk AI messages */}
-                      <Avatar3D 
-                        isSpeaking={isSpeaking && index === chats.length - 1} 
-                        size={36} 
+                      <Avatar3D
+                        isSpeaking={isSpeaking && index === chats.length - 1}
+                        size={36}
                       />
                     </div>
                   )}
 
                   <div style={styles.messageGroup}>
-                    <div style={{
-                      ...(chat.type === "user" ? styles.userMessage : styles.aiMessage),
-                      ...(chat.isError ? styles.errorMessage : {})
-                    }}>
-                      <div style={styles.messageContent}>{chat.content}</div>
+                    <div
+                      style={{
+                        ...(chat.type === "user"
+                          ? styles.userMessage
+                          : styles.aiMessage),
+                        ...(chat.isError ? styles.errorMessage : {}),
+                      }}
+                    >
+                      {chat.type === "ai" ? (
+                        <MarkdownMessage content={chat.content} />
+                      ) : (
+                        <div style={styles.messageContent}>{chat.content}</div>
+                      )}
                     </div>
-                    
-                    {chat.sources && chat.sources.length > 0 && (
-                      <div style={styles.sources}>
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                          <path d="M3 2H11C11.55 2 12 2.45 12 3V11C12 11.55 11.55 12 11 12H3C2.45 12 2 11.55 2 11V3C2 2.45 2.45 2 3 2Z"
-                            stroke="currentColor" strokeWidth="1.5"/>
+
+                    {/* Conversation Context Indicator */}
+                    {chat.type === "ai" && chat.history_used && (
+                      <div style={styles.contextBadge}>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                        >
+                          <path
+                            d="M6 1V11M1 6H11"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
+                          <circle
+                            cx="6"
+                            cy="6"
+                            r="5"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                          />
                         </svg>
-                        <span>Based on {chat.sources.length} document{chat.sources.length > 1 ? "s" : ""}</span>
+                        <span>Using conversation context</span>
                       </div>
                     )}
 
-                    {chat.type === "ai" && !conversationMode && !chat.isError && (
-                      <div style={styles.messageActions}>
+                    {/* Document Sources/Citations */}
+                    {chat.sources && chat.sources.length > 0 && (
+                      <div style={styles.sourcesContainer}>
                         <button
-                          onClick={() => speak(chat.content)}
-                          disabled={isSpeaking}
-                          style={styles.actionButton}
-                          title="Read aloud"
+                          onClick={() => toggleSources(index)}
+                          style={styles.sourcesToggle}
                         >
-                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M8 3L11 7L8 11M2 5H6V9H2V5Z"
-                              stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 14 14"
+                            fill="none"
+                          >
+                            <path
+                              d="M3 2H11C11.55 2 12 2.45 12 3V11C12 11.55 11.55 12 11 12H3C2.45 12 2 11.55 2 11V3C2 2.45 2.45 2 3 2Z"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                            />
+                          </svg>
+                          <span>
+                            {chat.sources.length} Source
+                            {chat.sources.length > 1 ? "s" : ""}
+                          </span>
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            style={{
+                              marginLeft: "auto",
+                              transform: expandedSources[index]
+                                ? "rotate(180deg)"
+                                : "rotate(0deg)",
+                              transition: "transform 0.2s ease",
+                            }}
+                          >
+                            <path
+                              d="M3 4.5L6 7.5L9 4.5"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                            />
                           </svg>
                         </button>
+
+                        {expandedSources[index] && (
+                          <div style={styles.sourcesList}>
+                            {chat.sources.map((source, idx) => (
+                              <div key={idx} style={styles.sourceItem}>
+                                <div style={styles.sourceNumber}>
+                                  [{idx + 1}]
+                                </div>
+                                <div style={styles.sourceContent}>
+                                  <div style={styles.sourceText}>
+                                    "
+                                    {source.text?.substring(0, 200) ||
+                                      source.preview ||
+                                      "No preview available"}
+                                    ..."
+                                  </div>
+                                  <div style={styles.sourceMetadata}>
+                                    {source.document_id} •
+                                    {(source.similarity * 100).toFixed(1)}%
+                                    match
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
+
+                    {chat.type === "ai" &&
+                      !conversationMode &&
+                      !chat.isError && (
+                        <div style={styles.messageActions}>
+                          <button
+                            onClick={() => speak(chat.content)}
+                            disabled={isSpeaking}
+                            style={styles.actionButton}
+                            title="Read aloud"
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 14 14"
+                              fill="none"
+                            >
+                              <path
+                                d="M8 3L11 7L8 11M2 5H6V9H2V5Z"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
 
                     <span style={styles.timestamp}>
                       {new Date(chat.timestamp).toLocaleTimeString([], {
@@ -666,8 +942,12 @@ export default function UserPage() {
                   <div style={styles.messageGroup}>
                     <div style={styles.typingIndicator}>
                       <span style={styles.typingDot}></span>
-                      <span style={{...styles.typingDot, animationDelay: '0.2s'}}></span>
-                      <span style={{...styles.typingDot, animationDelay: '0.4s'}}></span>
+                      <span
+                        style={{ ...styles.typingDot, animationDelay: "0.2s" }}
+                      ></span>
+                      <span
+                        style={{ ...styles.typingDot, animationDelay: "0.4s" }}
+                      ></span>
                     </div>
                   </div>
                 </div>
@@ -689,15 +969,22 @@ export default function UserPage() {
                   disabled={loading}
                   style={{
                     ...styles.voiceButton,
-                    background: isListening ? '#EF4444' : 'transparent',
+                    background: isListening ? "#EF4444" : "transparent",
                   }}
                   title={isListening ? "Stop listening" : "Start voice input"}
                 >
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M10 2C8.34 2 7 3.34 7 5V10C7 11.66 8.34 13 10 13C11.66 13 13 11.66 13 10V5C13 3.34 11.66 2 10 2Z"
-                      stroke={isListening ? "white" : "#64748B"} strokeWidth="1.5"/>
-                    <path d="M16 10C16 13.31 13.31 16 10 16C6.69 16 4 13.31 4 10M10 16V18"
-                      stroke={isListening ? "white" : "#64748B"} strokeWidth="1.5" strokeLinecap="round"/>
+                    <path
+                      d="M10 2C8.34 2 7 3.34 7 5V10C7 11.66 8.34 13 10 13C11.66 13 13 11.66 13 10V5C13 3.34 11.66 2 10 2Z"
+                      stroke={isListening ? "white" : "#64748B"}
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M16 10C16 13.31 13.31 16 10 16C6.69 16 4 13.31 4 10M10 16V18"
+                      stroke={isListening ? "white" : "#64748B"}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
                   </svg>
                 </button>
 
@@ -706,7 +993,9 @@ export default function UserPage() {
                   type="text"
                   value={message}
                   onChange={handleInputChange}
-                  placeholder={isListening ? "Listening..." : "Ask me anything..."}
+                  placeholder={
+                    isListening ? "Listening..." : "Ask me anything..."
+                  }
                   style={styles.input}
                   disabled={loading || isListening}
                 />
@@ -716,15 +1005,20 @@ export default function UserPage() {
                   disabled={loading || !message.trim() || isListening}
                   style={{
                     ...styles.sendButton,
-                    opacity: loading || !message.trim() || isListening ? 0.5 : 1,
+                    opacity:
+                      loading || !message.trim() || isListening ? 0.5 : 1,
                   }}
                 >
                   {loading ? (
                     <div style={styles.spinner}></div>
                   ) : (
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M2 10L18 2L10 18L8 12L2 10Z"
-                        fill="currentColor" stroke="currentColor" strokeWidth="1.5"/>
+                      <path
+                        d="M2 10L18 2L10 18L8 12L2 10Z"
+                        fill="currentColor"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      />
                     </svg>
                   )}
                 </button>
@@ -732,7 +1026,7 @@ export default function UserPage() {
             </div>
           </div>
         )}
-        
+
         {conversationMode && (
           <div style={styles.conversationModeBar}>
             <div style={styles.conversationStatus}>
@@ -792,7 +1086,8 @@ const styles = {
   gradientOverlay: {
     position: "absolute",
     inset: 0,
-    background: "linear-gradient(135deg, rgba(21, 60, 48, 0.02) 0%, rgba(45, 122, 95, 0.03) 100%)",
+    background:
+      "linear-gradient(135deg, rgba(21, 60, 48, 0.02) 0%, rgba(45, 122, 95, 0.03) 100%)",
     zIndex: 1,
   },
   floatingCircle1: {
@@ -800,7 +1095,8 @@ const styles = {
     width: "500px",
     height: "500px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(21, 60, 48, 0.12) 0%, rgba(21, 60, 48, 0) 70%)",
+    background:
+      "radial-gradient(circle, rgba(21, 60, 48, 0.12) 0%, rgba(21, 60, 48, 0) 70%)",
     top: "-150px",
     right: "-150px",
     animation: "float 25s ease-in-out infinite",
@@ -811,7 +1107,8 @@ const styles = {
     width: "400px",
     height: "400px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(45, 122, 95, 0.08) 0%, rgba(45, 122, 95, 0) 70%)",
+    background:
+      "radial-gradient(circle, rgba(45, 122, 95, 0.08) 0%, rgba(45, 122, 95, 0) 70%)",
     bottom: "50px",
     left: "-100px",
     animation: "float 20s ease-in-out infinite 5s",
@@ -822,7 +1119,8 @@ const styles = {
     width: "300px",
     height: "300px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(21, 60, 48, 0.06) 0%, rgba(21, 60, 48, 0) 70%)",
+    background:
+      "radial-gradient(circle, rgba(21, 60, 48, 0.06) 0%, rgba(21, 60, 48, 0) 70%)",
     top: "50%",
     right: "15%",
     animation: "float 30s ease-in-out infinite 10s",
@@ -888,6 +1186,45 @@ const styles = {
     transition: "all 0.2s",
     textAlign: "left",
     marginBottom: "2px",
+  },
+  historyItemWrapper: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    borderRadius: "6px",
+    transition: "all 0.2s ease",
+    marginBottom: "2px",
+  },
+  historyItemButton: {
+    flex: 1,
+    padding: "10px 12px",
+    background: "transparent",
+    border: "none",
+    color: "rgba(255, 255, 255, 0.9)",
+    cursor: "pointer",
+    textAlign: "left",
+    fontSize: "13px",
+    borderRadius: "6px",
+    transition: "all 0.2s ease",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    overflow: "hidden",
+  },
+  deleteButton: {
+    padding: "6px",
+    background: "transparent",
+    border: "none",
+    color: "rgba(255,255,255,0.5)",
+    cursor: "pointer",
+    borderRadius: "4px",
+    transition: "all 0.2s ease",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    opacity: 0,
+    flexShrink: 0,
   },
   historyItemText: {
     overflow: "hidden",
@@ -1154,6 +1491,18 @@ const styles = {
     color: "#64748B",
     paddingLeft: "4px",
   },
+  contextBadge: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    fontSize: "11px",
+    color: "#2D7A5F",
+    background: "rgba(45, 122, 95, 0.08)",
+    padding: "4px 10px",
+    borderRadius: "12px",
+    width: "fit-content",
+    border: "1px solid rgba(45, 122, 95, 0.2)",
+  },
   messageActions: {
     display: "flex",
     gap: "4px",
@@ -1286,6 +1635,67 @@ const styles = {
   waitingText: {
     color: "rgba(255, 255, 255, 0.8)",
   },
+  sourcesContainer: {
+    marginTop: "8px",
+    background: "rgba(45, 122, 95, 0.05)",
+    borderRadius: "8px",
+    border: "1px solid rgba(45, 122, 95, 0.15)",
+    overflow: "hidden",
+  },
+  sourcesToggle: {
+    width: "100%",
+    padding: "10px 12px",
+    background: "transparent",
+    border: "none",
+    color: "#2D7A5F",
+    fontSize: "13px",
+    fontWeight: "600",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  sourcesList: {
+    padding: "8px 12px 12px 12px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    animation: "slideDown 0.2s ease",
+  },
+  sourceItem: {
+    display: "flex",
+    gap: "10px",
+    padding: "10px",
+    background: "white",
+    borderRadius: "6px",
+    border: "1px solid rgba(45, 122, 95, 0.1)",
+  },
+  sourceNumber: {
+    fontSize: "12px",
+    fontWeight: "700",
+    color: "#2D7A5F",
+    flexShrink: 0,
+  },
+  sourceContent: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    gap: "4px",
+  },
+  sourceText: {
+    fontSize: "12px",
+    lineHeight: "1.5",
+    color: "#475569",
+    fontStyle: "italic",
+  },
+  sourceMetadata: {
+    fontSize: "11px",
+    color: "#94A3B8",
+    display: "flex",
+    gap: "8px",
+    alignItems: "center",
+  },
 };
 
 // CSS Animations
@@ -1372,6 +1782,10 @@ if (typeof document !== "undefined") {
       background: rgba(21, 60, 48, 0.05) !important;
       border-color: #153C30 !important;
       color: #153C30 !important;
+    }
+    
+    [style*="sourcesToggle"]:hover {
+      background: rgba(45, 122, 95, 0.08) !important;
     }
     
     /* Scrollbar Styling */

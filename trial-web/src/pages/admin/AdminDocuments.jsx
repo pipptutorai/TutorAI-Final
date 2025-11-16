@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { adminDocumentsAPI } from "../../lib/api";
 import AdminLayout from "../../components/AdminLayout";
 import CustomSelect from "../../components/CustomSelect";
-import "./AdminDocuments.css"; 
+import "./AdminDocuments.css";
 
 export default function AdminDocuments() {
   const [documents, setDocuments] = useState([]);
@@ -176,7 +176,7 @@ export default function AdminDocuments() {
   };
 
   return (
-    <AdminLayout title="📄 Document Management">
+    <AdminLayout title=" Document Management">
       {/* Upload Section */}
       <div className="card">
         <h2 className="section-title">Upload PDF Document</h2>
@@ -217,7 +217,9 @@ export default function AdminDocuments() {
           <button
             onClick={handleUpload}
             disabled={!selectedFile || uploading}
-            className={`btn ${!selectedFile || uploading ? "btn-disabled" : "btn-primary"}`}
+            className={`btn ${
+              !selectedFile || uploading ? "btn-disabled" : "btn-primary"
+            }`}
           >
             {uploading ? "Uploading..." : "Upload Document"}
           </button>
@@ -353,7 +355,9 @@ export default function AdminDocuments() {
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className={`btn btn-sm ${currentPage === 1 ? "btn-disabled" : "btn-primary"}`}
+            className={`btn btn-sm ${
+              currentPage === 1 ? "btn-disabled" : "btn-primary"
+            }`}
           >
             ← Prev
           </button>
@@ -363,7 +367,9 @@ export default function AdminDocuments() {
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className={`btn btn-sm ${currentPage === totalPages ? "btn-disabled" : "btn-primary"}`}
+            className={`btn btn-sm ${
+              currentPage === totalPages ? "btn-disabled" : "btn-primary"
+            }`}
           >
             Next →
           </button>
@@ -377,8 +383,8 @@ export default function AdminDocuments() {
             <h2>Delete Document</h2>
             <p>
               Are you sure you want to delete{" "}
-              <strong>{documentToDelete.filename}</strong>? This will also delete
-              all associated chunks.
+              <strong>{documentToDelete.filename}</strong>? This will also
+              delete all associated chunks.
             </p>
             <div className="modal-actions">
               <button

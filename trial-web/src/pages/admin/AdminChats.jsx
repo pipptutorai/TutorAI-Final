@@ -149,7 +149,7 @@ export default function AdminChats() {
       <div style={filterBar}>
         <input
           type="text"
-          placeholder="🔍 Search messages..."
+          placeholder=" Search messages..."
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
@@ -159,7 +159,7 @@ export default function AdminChats() {
         />
         <input
           type="text"
-          placeholder="📧 Filter by user email..."
+          placeholder=" Filter by user email..."
           value={userFilter}
           onChange={(e) => {
             setUserFilter(e.target.value);
@@ -218,13 +218,23 @@ export default function AdminChats() {
               <tbody>
                 {!chats || chats.length === 0 ? (
                   <tr>
-                    <td colSpan="5" style={{ textAlign: "center", padding: "40px", color: "#64748B" }}>
+                    <td
+                      colSpan="5"
+                      style={{
+                        textAlign: "center",
+                        padding: "40px",
+                        color: "#64748B",
+                      }}
+                    >
                       No chats found
                     </td>
                   </tr>
                 ) : (
                   chats.map((chat) => (
-                    <tr key={chat.id} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                    <tr
+                      key={chat.id}
+                      style={{ borderBottom: "1px solid #E5E7EB" }}
+                    >
                       <td style={tableCellStyle}>
                         <div style={{ fontWeight: 600, color: "#1E293B" }}>
                           {chat.user_name || "Unknown"}
@@ -246,9 +256,7 @@ export default function AdminChats() {
                                 ? "rgba(21, 60, 48, 0.08)"
                                 : "rgba(45, 122, 95, 0.08)",
                             color:
-                              chat.language === "id"
-                                ? "#153C30"
-                                : "#2D7A5F",
+                              chat.language === "id" ? "#153C30" : "#2D7A5F",
                             fontWeight: 600,
                             fontSize: "12px",
                           }}
@@ -334,7 +342,9 @@ export default function AdminChats() {
               <strong>User Message:</strong>
               <p style={{ marginTop: "10px" }}>{selectedChat.user_message}</p>
             </div>
-            <div style={{ ...modalBlock, background: "rgba(45, 122, 95, 0.08)" }}>
+            <div
+              style={{ ...modalBlock, background: "rgba(45, 122, 95, 0.08)" }}
+            >
               <strong>AI Response:</strong>
               <p style={{ marginTop: "10px" }}>{selectedChat.ai_response}</p>
             </div>

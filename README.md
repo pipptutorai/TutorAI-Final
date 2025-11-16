@@ -2,9 +2,7 @@
 
 TutorAI adalah platform pembelajaran berbasis AI dengan fitur RAG (Retrieval-Augmented Generation) yang menggunakan Gemini API, dilengkapi dengan 3D avatar interaktif dan dukungan speech-to-text/text-to-speech.
 
-
-
-## 📑 Table of Contents
+## Table of Contents
 
 - [Fitur Utama](#-fitur-utama)
 - [Tech Stack](#-tech-stack)
@@ -20,20 +18,21 @@ TutorAI adalah platform pembelajaran berbasis AI dengan fitur RAG (Retrieval-Aug
 - [Deployment](#-deployment)
 - [Team & Contribution](#-team--contribution)
 
-
 ---
 
-## 🎯 Fitur Utama
+## Fitur Utama
 
-- 💬 **Chat Cerdas**: AI tutor dengan RAG untuk jawaban akurat dari dokumen
-- 🤖 **3D Avatar Interaktif**: Avatar animasi 3D yang responsive
-- 🎤 **Speech-to-Text**: Berbicara langsung ke AI tutor
-- 🔊 **Text-to-Speech**: AI berbicara balik dengan suara natural
-- 📚 **Document Management**: Upload dan index PDF untuk knowledge base
-- 👥 **Admin Dashboard**: Kelola user, dokumen, dan monitor chat
-- 🔐 **Authentication**: JWT-based authentication yang aman
+- **Chat Cerdas**: AI tutor dengan RAG untuk jawaban akurat dari dokumen
+- **Conversation Context**: Melanjutkan percakapan dengan konteks dari chat sebelumnya
+- **3D Avatar Interaktif**: Avatar animasi 3D yang responsive
+- **Speech-to-Text**: Berbicara langsung ke AI tutor
+- **Text-to-Speech**: AI berbicara balik dengan suara natural
+- **Document Management**: Upload dan index PDF untuk knowledge base
+- **Session Management**: Organize dan lanjutkan percakapan kapan saja
+- **Admin Dashboard**: Kelola user, dokumen, dan monitor chat
+- **Authentication**: JWT-based authentication yang aman
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Backend
 
@@ -52,21 +51,21 @@ TutorAI adalah platform pembelajaran berbasis AI dengan fitur RAG (Retrieval-Aug
 - **Speech**: Web Speech API
 - **Styling**: CSS Modern dengan variabel
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 TutorAI-Final/
-├── 📂 database/
+├──  database/
 │   ├── schema.sql              # Database schema dengan pgvector
 │
-├── 📂 indexer/                 # Python FastAPI service
+├──  indexer/                 # Python FastAPI service
 │   ├── indexer_rag.py          # Main FastAPI app untuk RAG
 │   ├── chunker_embedder.py     # Text chunking & embedding
 │   ├── requirements.txt        # Python dependencies
 │   ├── .env.example            # Template environment variables
 │   └── .env                    # Your environment variables (create this)
 │
-├── 📂 tutor-cerdas-api/        # Node.js Express API
+├──  tutor-cerdas-api/        # Node.js Express API
 │   ├── src/
 │   │   ├── server.js           # Main server file
 │   │   ├── routes/             # API endpoints
@@ -87,7 +86,7 @@ TutorAI-Final/
 │   ├── .env.example            # Template environment variables
 │   └── .env                    # Your environment variables (create this)
 │
-├── 📂 trial-web/               # React frontend
+├──  trial-web/               # React frontend
 │   ├── src/
 │   │   ├── main.jsx            # React entry point
 │   │   ├── App.jsx             # Main app component
@@ -119,7 +118,7 @@ TutorAI-Final/
 └── .gitignore
 ```
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### Prerequisites
 
@@ -311,7 +310,7 @@ WHERE email = 'your-email@example.com';
 
 ---
 
-## 🔧 Development
+## Development
 
 ### Running All Services
 
@@ -346,94 +345,94 @@ npm run dev
 - **Indexer**: http://localhost:8000
 - **Database**: localhost:5432
 
-## 📋 Features Detail
+## Features Detail
 
 ### User Features
 
-- ✅ **AI Chat dengan RAG**: Tanya jawab dengan AI yang didukung dokumen
-- ✅ **3D Avatar Interaktif**: Avatar 3D dengan animasi idle dan talking
-- ✅ **Voice Input**: Berbicara langsung menggunakan microphone
-- ✅ **Voice Output**: AI berbicara dengan Text-to-Speech
-- ✅ **Chat History**: Riwayat percakapan dengan pagination
-- ✅ **Auto Language Detection**: Deteksi Bahasa Indonesia & Inggris otomatis
-- ✅ **Source Citations**: Tampilkan sumber jawaban dari dokumen
-- ✅ **Responsive Design**: Bekerja di desktop dan mobile
+- **AI Chat dengan RAG**: Tanya jawab dengan AI yang didukung dokumen
+- **3D Avatar Interaktif**: Avatar 3D dengan animasi idle dan talking
+- **Voice Input**: Berbicara langsung menggunakan microphone
+- **Voice Output**: AI berbicara dengan Text-to-Speech
+- **Chat History**: Riwayat percakapan dengan pagination
+- **Auto Language Detection**: Deteksi Bahasa Indonesia & Inggris otomatis
+- **Source Citations**: Tampilkan sumber jawaban dari dokumen
+- **Responsive Design**: Bekerja di desktop dan mobile
 
 ### Admin Features
 
-- ✅ **Dashboard Statistics**: Overview user, dokumen, dan chat
-- ✅ **User Management**:
-  - List semua users dengan pencarian
-  - Edit user (name, email, role)
-  - Deactivate/Activate user
-  - Delete user
-- ✅ **Document Management**:
-  - Upload PDF dokumen
-  - Auto indexing dengan chunking & embedding
-  - List dokumen dengan metadata
-  - Delete dokumen
-- ✅ **Chat Monitoring**:
-  - View semua chat history
-  - Filter by user
-  - Search dalam chat
-  - Export to CSV
-- ✅ **Real-time Updates**: Data refresh otomatis
+- **Dashboard Statistics**: Overview user, dokumen, dan chat
+- **User Management**:
+- List semua users dengan pencarian
+- Edit user (name, email, role)
+- Deactivate/Activate user
+- Delete user
+- **Document Management**:
+- Upload PDF dokumen
+- Auto indexing dengan chunking & embedding
+- List dokumen dengan metadata
+- Delete dokumen
+- **Chat Monitoring**:
+- View semua chat history
+- Filter by user
+- Search dalam chat
+- Export to CSV
+- **Real-time Updates**: Data refresh otomatis
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### Authentication
 
 | Method | Endpoint             | Description                | Auth Required |
 | ------ | -------------------- | -------------------------- | ------------- |
-| POST   | `/api/auth/register` | Register user baru         | ❌            |
-| POST   | `/api/auth/login`    | Login & dapatkan JWT token | ❌            |
+| POST   | `/api/auth/register` | Register user baru         |               |
+| POST   | `/api/auth/login`    | Login & dapatkan JWT token |               |
 
 ### Chat (User)
 
 | Method | Endpoint                | Description                        | Auth Required |
 | ------ | ----------------------- | ---------------------------------- | ------------- |
-| POST   | `/api/chat`             | Kirim pesan ke AI                  | ✅ User       |
-| GET    | `/api/chat/history`     | Get chat history dengan pagination | ✅ User       |
-| DELETE | `/api/chat/history/:id` | Delete specific chat               | ✅ User       |
+| POST   | `/api/chat`             | Kirim pesan ke AI                  | User          |
+| GET    | `/api/chat/history`     | Get chat history dengan pagination | User          |
+| DELETE | `/api/chat/history/:id` | Delete specific chat               | User          |
 
 ### Admin - Statistics
 
 | Method | Endpoint           | Description          | Auth Required |
 | ------ | ------------------ | -------------------- | ------------- |
-| GET    | `/api/admin/stats` | Dashboard statistics | ✅ Admin      |
+| GET    | `/api/admin/stats` | Dashboard statistics | Admin         |
 
 ### Admin - Users
 
 | Method | Endpoint               | Description    | Auth Required |
 | ------ | ---------------------- | -------------- | ------------- |
-| GET    | `/api/admin/users`     | List all users | ✅ Admin      |
-| PATCH  | `/api/admin/users/:id` | Update user    | ✅ Admin      |
-| DELETE | `/api/admin/users/:id` | Delete user    | ✅ Admin      |
+| GET    | `/api/admin/users`     | List all users | Admin         |
+| PATCH  | `/api/admin/users/:id` | Update user    | Admin         |
+| DELETE | `/api/admin/users/:id` | Delete user    | Admin         |
 
 ### Admin - Documents
 
 | Method | Endpoint                      | Description              | Auth Required |
 | ------ | ----------------------------- | ------------------------ | ------------- |
-| GET    | `/api/admin/documents`        | List all documents       | ✅ Admin      |
-| POST   | `/api/admin/documents/upload` | Upload PDF & auto index  | ✅ Admin      |
-| DELETE | `/api/admin/documents/:id`    | Delete document & chunks | ✅ Admin      |
+| GET    | `/api/admin/documents`        | List all documents       | Admin         |
+| POST   | `/api/admin/documents/upload` | Upload PDF & auto index  | Admin         |
+| DELETE | `/api/admin/documents/:id`    | Delete document & chunks | Admin         |
 
 ### Admin - Chats
 
 | Method | Endpoint                  | Description                 | Auth Required |
 | ------ | ------------------------- | --------------------------- | ------------- |
-| GET    | `/api/admin/chats`        | List all chats with filters | ✅ Admin      |
-| POST   | `/api/admin/chats/export` | Export chats to CSV         | ✅ Admin      |
+| GET    | `/api/admin/chats`        | List all chats with filters | Admin         |
+| POST   | `/api/admin/chats/export` | Export chats to CSV         | Admin         |
 
 ### Indexer (Internal API)
 
 | Method | Endpoint    | Description            | Auth Required |
 | ------ | ----------- | ---------------------- | ------------- |
-| POST   | `/index`    | Index document PDF     | ❌ (Internal) |
-| POST   | `/retrieve` | Semantic search chunks | ❌ (Internal) |
-| GET    | `/health`   | Health check           | ❌            |
+| POST   | `/index`    | Index document PDF     | (Internal)    |
+| POST   | `/retrieve` | Semantic search chunks | (Internal)    |
+| GET    | `/health`   | Health check           |               |
 
-## ⚙️ Environment Variables
+## ️ Environment Variables
 
 ### Indexer Service (indexer/.env)
 
@@ -486,7 +485,7 @@ VITE_API_BASE_URL=http://localhost:3000/api
 
 **Note:** File `.env` tidak di-commit ke Git (ada di `.gitignore`). Setiap developer harus membuat `.env` sendiri dari `.env.example`.
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Database Issues
 
@@ -607,7 +606,7 @@ psql -U postgres -d tutorai -c "SELECT version();"
 2. Pastikan API key sama di indexer dan backend .env
 3. Cek quota Gemini API belum habis
 
-## 📝 Database Schema
+## Database Schema
 
 ### Tables
 
@@ -637,18 +636,18 @@ psql -U postgres -d tutorai -c "SELECT version();"
 - User email unique index
 - Foreign keys with CASCADE delete
 
-## 🔒 Security
+## Security
 
-- ✅ JWT authentication with bcrypt password hashing
-- ✅ Rate limiting on API endpoints
-- ✅ Input validation with express-validator
-- ✅ CORS configuration
-- ✅ Helmet.js for security headers
-- ✅ SQL injection prevention (parameterized queries)
-- ✅ XSS protection
-- ✅ File upload validation (PDF only, max 10MB)
+- JWT authentication with bcrypt password hashing
+- Rate limiting on API endpoints
+- Input validation with express-validator
+- CORS configuration
+- Helmet.js for security headers
+- SQL injection prevention (parameterized queries)
+- XSS protection
+- File upload validation (PDF only, max 10MB)
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Checklist
 

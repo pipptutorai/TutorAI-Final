@@ -12,6 +12,7 @@ router.use(authenticateUser);
 /**
  * POST /api/chat
  * Send a message to AI and get response with RAG
+ * Supports conversation context from previous messages
  */
 router.post(
   "/",
@@ -20,6 +21,13 @@ router.post(
       .trim()
       .isLength({ min: 1, max: 2000 })
       .withMessage("Message required (1-2000 characters)"),
+    body("session_id")
+      .optional({ nullable: true })
+      .custom((value) => {
+        if (value === null || value === undefined) return true;
+        if (Number.isInteger(value) && value > 0) return true;
+        throw new Error("Session ID must be a positive integer or null");
+      }),
   ],
   async (req, res) => {
     try {
@@ -32,19 +40,65 @@ router.post(
         });
       }
 
-      const { message } = req.body;
+      const { message, session_id } = req.body;
       const userId = req.user.id;
 
-      // Generate AI response with RAG
-      const aiResponse = await generateResponse(message);
+      let sessionId = session_id;
+
+      // If no session_id provided, create a new session
+      if (!sessionId) {
+        const newSession = await pool.query(
+          `INSERT INTO chat_sessions (user_id, title, last_message_at)
+           VALUES ($1, $2, NOW())
+           RETURNING id`,
+          [userId, message.substring(0, 100)]
+        );
+        sessionId = newSession.rows[0].id;
+      } else {
+        // Verify session belongs to user
+        const sessionCheck = await pool.query(
+          "SELECT id FROM chat_sessions WHERE id = $1 AND user_id = $2",
+          [sessionId, userId]
+        );
+
+        if (sessionCheck.rows.length === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Session not found",
+          });
+        }
+
+        // Update session's last message time
+        await pool.query(
+          "UPDATE chat_sessions SET last_message_at = NOW() WHERE id = $1",
+          [sessionId]
+        );
+      }
+
+      // Get recent chat history from this session (last 5 messages for context)
+      const historyResult = await pool.query(
+        `SELECT message, reply
+         FROM chat_history
+         WHERE session_id = $1
+         ORDER BY created_at DESC
+         LIMIT 5`,
+        [sessionId]
+      );
+
+      // Reverse to get chronological order (oldest first)
+      const chatHistory = historyResult.rows.reverse();
+
+      // Generate AI response with RAG and chat history context
+      const aiResponse = await generateResponse(message, null, chatHistory);
 
       // Save to chat history
       const result = await pool.query(
-        `INSERT INTO chat_history (user_id, message, reply, language, sources, created_at)
-       VALUES ($1, $2, $3, $4, $5, NOW())
+        `INSERT INTO chat_history (user_id, session_id, message, reply, language, sources, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())
        RETURNING id, message, reply, language, sources, created_at`,
         [
           userId,
+          sessionId,
           message,
           aiResponse.reply,
           aiResponse.language,
@@ -58,11 +112,13 @@ router.post(
         success: true,
         data: {
           chat_id: chat.id,
+          session_id: sessionId,
           message: chat.message,
           reply: chat.reply,
           language: chat.language,
           sources: chat.sources,
           context_used: aiResponse.context_used,
+          history_used: aiResponse.history_used,
           created_at: chat.created_at,
         },
       });
@@ -76,6 +132,145 @@ router.post(
     }
   }
 );
+
+/**
+ * GET /api/chat/sessions
+ * Get user's chat sessions
+ */
+router.get("/sessions", async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const result = await pool.query(
+      `SELECT 
+        cs.id,
+        cs.title,
+        cs.last_message_at,
+        cs.created_at,
+        COUNT(ch.id) as message_count
+       FROM chat_sessions cs
+       LEFT JOIN chat_history ch ON cs.id = ch.session_id
+       WHERE cs.user_id = $1
+       GROUP BY cs.id, cs.title, cs.last_message_at, cs.created_at
+       ORDER BY cs.last_message_at DESC
+       LIMIT 50`,
+      [userId]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        sessions: result.rows,
+      },
+    });
+  } catch (error) {
+    console.error("Get sessions error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get sessions",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * GET /api/chat/sessions/:id
+ * Get specific session with all messages
+ */
+router.get("/sessions/:id", async (req, res) => {
+  try {
+    const sessionId = parseInt(req.params.id);
+    const userId = req.user.id;
+
+    if (isNaN(sessionId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid session ID",
+      });
+    }
+
+    // Check session ownership
+    const sessionResult = await pool.query(
+      `SELECT id, title, created_at, last_message_at
+       FROM chat_sessions
+       WHERE id = $1 AND user_id = $2`,
+      [sessionId, userId]
+    );
+
+    if (sessionResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    // Get all messages in this session
+    const messagesResult = await pool.query(
+      `SELECT id, message, reply, language, sources, created_at
+       FROM chat_history
+       WHERE session_id = $1
+       ORDER BY created_at ASC`,
+      [sessionId]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        session: sessionResult.rows[0],
+        messages: messagesResult.rows,
+      },
+    });
+  } catch (error) {
+    console.error("Get session error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get session",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * DELETE /api/chat/sessions/:id
+ * Delete a chat session and all its messages
+ */
+router.delete("/sessions/:id", async (req, res) => {
+  try {
+    const sessionId = parseInt(req.params.id);
+    const userId = req.user.id;
+
+    if (isNaN(sessionId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid session ID",
+      });
+    }
+
+    const result = await pool.query(
+      "DELETE FROM chat_sessions WHERE id = $1 AND user_id = $2 RETURNING id",
+      [sessionId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Session deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete session error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete session",
+      error: error.message,
+    });
+  }
+});
 
 /**
  * GET /api/chat/history

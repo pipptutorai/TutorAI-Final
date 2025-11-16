@@ -1,8 +1,8 @@
-# 📦 Installation Guide - TutorAI
+# Installation Guide - TutorAI
 
 Panduan lengkap instalasi TutorAI dengan troubleshooting untuk berbagai platform.
 
-## 📋 Prerequisites Installation
+## Prerequisites Installation
 
 ### 1. Node.js Installation
 
@@ -39,7 +39,7 @@ npm --version
 **Windows:**
 
 1. Download dari https://www.python.org/downloads/
-2. ⚠️ **PENTING**: Check "Add Python to PATH"
+2. ️ **PENTING**: Check "Add Python to PATH"
 3. Install dan verify:
 
 ```powershell
@@ -163,7 +163,7 @@ Verify:
 git --version
 ```
 
-## 🔧 Environment Setup
+## Environment Setup
 
 ### 1. Clone Repository
 
@@ -415,12 +415,12 @@ npm run dev
 
 # Should see:
 # VITE v7.x.x ready in xxx ms
-# ➜ Local: http://localhost:5173/
+#  Local: http://localhost:5173/
 
 # Open browser: http://localhost:5173
 ```
 
-## ✅ Verification Checklist
+## Verification Checklist
 
 Run through this checklist to ensure everything is working:
 
@@ -480,7 +480,7 @@ Run through this checklist to ensure everything is working:
   - Ask question related to uploaded document
   - Should get contextual answer
 
-## 🔧 Common Installation Issues
+## Common Installation Issues
 
 ### Issue: "python not found"
 
@@ -578,7 +578,7 @@ npm install
 3. Verify DATABASE_URL format correct
 4. Test connection: `psql -U postgres -d tutorai`
 
-## 📞 Still Having Issues?
+## Still Having Issues?
 
 1. Check [FAQ.md](FAQ.md) for common questions
 2. Check [Troubleshooting](README.md#-troubleshooting) in README
