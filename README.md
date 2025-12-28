@@ -175,6 +175,18 @@ CREATE DATABASE tutorai;
 
 # Verify installation
 SELECT * FROM pg_extension WHERE extname = 'vector';
+
+# Add Table untuk reset password
+-- Menambahkan kolom reset_token dan reset_token_expiry ke tabel profiles
+ALTER TABLE profiles 
+ADD COLUMN reset_token VARCHAR(6),
+ADD COLUMN reset_token_expiry TIMESTAMP WITH TIME ZONE;
+
+-- Membuat indeks untuk kolom reset_token
+CREATE INDEX idx_profiles_reset_token ON profiles(reset_token);
+
+# Buka Powershell dan jalankan
+./migrate "Path to ...\TutorAI-Final\migrate-chat-context.bat"
 ```
 
 **Atau menggunakan file:**
